@@ -258,14 +258,27 @@
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
   // 약분이 일어나도록 일부러 공약수를 심어서 문제를 만든다
+  // type: 'ff'(분수×분수), 'nf'(자연수×분수), 'fn'(분수×자연수)
   function makeProblem() {
+    // 자연수는 분모를 1로 둔다 (예: 4 = 4/1)
+    const types = ['ff', 'ff', 'nf', 'fn'];   // 분수×분수가 조금 더 자주
+    const type = types[rand(0, types.length - 1)];
     let a, b, c, d;
-    // 교차/직접 약분이 가능하도록 구성
-    const tries = 80;
+    const tries = 120;
     for (let i = 0; i < tries; i++) {
-      a = rand(1, 9); b = rand(2, 12);
-      c = rand(1, 9); d = rand(2, 12);
-      if (a >= b || c >= d) continue;               // 진분수로
+      if (type === 'nf') {            // 자연수 × 분수
+        a = rand(2, 9); b = 1;
+        c = rand(1, 9); d = rand(2, 12);
+        if (c >= d) continue;
+      } else if (type === 'fn') {     // 분수 × 자연수
+        a = rand(1, 9); b = rand(2, 12);
+        c = rand(2, 9); d = 1;
+        if (a >= b) continue;
+      } else {                        // 분수 × 분수
+        a = rand(1, 9); b = rand(2, 12);
+        c = rand(1, 9); d = rand(2, 12);
+        if (a >= b || c >= d) continue;
+      }
       const crossable =
         gcd(a, d) > 1 || gcd(c, b) > 1 ||           // 교차 약분 가능
         gcd(a, b) > 1 || gcd(c, d) > 1;             // 자체 약분 가능
@@ -274,24 +287,26 @@
     }
     const num = a * c, den = b * d;
     const g = gcd(num, den);
-    return { a, b, c, d, num, den, ansNum: num / g, ansDen: den / g };
+    return { type, a, b, c, d, num, den, ansNum: num / g, ansDen: den / g };
+  }
+
+  // 한 항을 분수 또는 자연수로 그린다 (분모가 1이면 자연수로 표시)
+  function termHTML(top, bottom) {
+    if (bottom === 1) {
+      return `<div class="frac"><span class="num" style="font-size:1em;">${top}</span></div>`;
+    }
+    return `
+      <div class="frac">
+        <span class="num">${top}</span>
+        <span class="bar"></span>
+        <span class="den">${bottom}</span>
+      </div>`;
   }
 
   function renderExpr() {
     const { a, b, c, d } = cur;
-    document.getElementById('expr').innerHTML = `
-      <div class="frac">
-        <span class="num">${a}</span>
-        <span class="bar"></span>
-        <span class="den">${b}</span>
-      </div>
-      <span class="op">×</span>
-      <div class="frac">
-        <span class="num">${c}</span>
-        <span class="bar"></span>
-        <span class="den">${d}</span>
-      </div>
-    `;
+    document.getElementById('expr').innerHTML =
+      termHTML(a, b) + `<span class="op">×</span>` + termHTML(c, d);
   }
 
   function buildSteps() {
@@ -299,12 +314,23 @@
     // 교차/직접 약분 안내
     let lines = [];
     const gad = gcd(a, d), gcb = gcd(c, b), gab = gcd(a, b), gcd_ = gcd(c, d);
+    const natLeft = (b === 1), natRight = (d === 1);
+
+    // 자연수가 있으면 분모 1짜리 분수로 바꿔 보는 단계 추가
+    if (natLeft || natRight) {
+      let conv = [];
+      if (natLeft)  conv.push(`<span class="chip p">${a}</span> = ${a}/1`);
+      if (natRight) conv.push(`<span class="chip p">${c}</span> = ${c}/1`);
+      lines.push(`<div class="step">⓪ 자연수는 <b>분모가 1인 분수</b>로 볼 수 있어요: ` + conv.join(" , ") + `</div>`);
+    }
 
     lines.push(`<div class="step">① 곱셈은 <b>분자끼리, 분모끼리</b> 곱해요: <span class="big">${a}×${c} / ${b}×${d}</span></div>`);
 
+    const L = natLeft ? "왼쪽 자연수" : "왼쪽 분자";
+    const R = natRight ? "오른쪽 자연수" : "오른쪽 분자";
     let cutMsgs = [];
-    if (gad > 1) cutMsgs.push(`왼쪽 분자 <span class="chip p">${a}</span> 와 오른쪽 분모 <span class="chip b">${d}</span> 는 <b>${gad}</b>로 약분`);
-    if (gcb > 1) cutMsgs.push(`오른쪽 분자 <span class="chip p">${c}</span> 와 왼쪽 분모 <span class="chip b">${b}</span> 는 <b>${gcb}</b>로 약분`);
+    if (gad > 1) cutMsgs.push(`${L} <span class="chip p">${a}</span> 와 오른쪽 분모 <span class="chip b">${d}</span> 는 <b>${gad}</b>로 약분`);
+    if (gcb > 1) cutMsgs.push(`${R} <span class="chip p">${c}</span> 와 왼쪽 분모 <span class="chip b">${b}</span> 는 <b>${gcb}</b>로 약분`);
     if (gab > 1) cutMsgs.push(`같은 분수의 분자 <span class="chip p">${a}</span> 와 분모 <span class="chip b">${b}</span> 는 <b>${gab}</b>로 약분`);
     if (gcd_ > 1) cutMsgs.push(`같은 분수의 분자 <span class="chip p">${c}</span> 와 분모 <span class="chip b">${d}</span> 는 <b>${gcd_}</b>로 약분`);
 
