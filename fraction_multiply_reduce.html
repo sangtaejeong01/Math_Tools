@@ -151,6 +151,9 @@
     padding: 6px 4px;
     color: var(--ink);
     outline: none;
+    /* 키보드가 떠도 자동 스크롤 시 위쪽에 여백을 둔다 */
+    scroll-margin-top: 100px;
+    scroll-margin-bottom: 120px;
   }
   .answer input:focus { border-color: var(--purple); }
   .answer .ibar {
@@ -261,7 +264,7 @@
   // type: 'ff'(분수×분수), 'nf'(자연수×분수), 'fn'(분수×자연수)
   function makeProblem() {
     // 자연수는 분모를 1로 둔다 (예: 4 = 4/1)
-    const types = ['ff', 'ff', 'nf', 'fn'];   // 분수×분수가 조금 더 자주
+    const types = ['ff', 'ff', 'nf', 'fn'];   // 분수×분수 50% , 자연수 포함 50%
     const type = types[rand(0, types.length - 1)];
     let a, b, c, d;
     const tries = 120;
@@ -398,6 +401,28 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') check();
   });
+
+  // 입력칸을 누르면 키보드 위로 자동 스크롤 (화면 가림 방지)
+  function scrollInputIntoView(el) {
+    // 키보드가 올라오는 애니메이션을 기다린 뒤 가운데로 스크롤
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 320);
+  }
+  ['ansNum', 'ansDen'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('focus', () => scrollInputIntoView(el));
+  });
+
+  // 키보드가 떠서 화면이 줄어들면, 포커스된 입력칸이 가려지지 않게 다시 맞춘다
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const el = document.activeElement;
+      if (el && (el.id === 'ansNum' || el.id === 'ansDen')) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
 
   newProblem();
 </script>
