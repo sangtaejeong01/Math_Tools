@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>약분 · 통분 연습</title>
+<style>
+  :root {
+    --pink: #ff7eb9;
+    --blue: #7ec8ff;
+    --green: #6dd47e;
+    --yellow: #ffd76d;
+    --ink: #34495e;
+    --soft: #fff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: linear-gradient(135deg, #fdeff9 0%, #e3f6ff 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+  }
+  h1 { font-size: 28px; margin: 8px 0 4px; }
+  .subtitle { color: #7f8c8d; margin: 0 0 20px; font-size: 15px; }
+
+  .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+  .tab {
+    border: none;
+    padding: 12px 28px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    transition: transform .1s, background .2s;
+  }
+  .tab:hover { transform: translateY(-2px); }
+  .tab.active.reduce { background: var(--pink); color: #fff; }
+  .tab.active.common { background: var(--blue); color: #fff; }
+
+  .card {
+    background: var(--soft);
+    border-radius: 24px;
+    padding: 30px 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+  }
+
+  .scorebar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 18px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .scorebar span { color: var(--green); }
+  .scorebar .wrong { color: var(--pink); }
+
+  .problem { font-size: 22px; margin: 6px 0 22px; font-weight: 700; }
+
+  /* fraction display */
+  .frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    margin: 0 4px;
+    line-height: 1.1;
+  }
+  .frac .num, .frac .den { padding: 0 10px; }
+  .frac .bar { width: 100%; height: 3px; background: var(--ink); margin: 3px 0; }
+  .big { font-size: 36px; }
+
+  /* input fraction */
+  .inputfrac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    margin: 0 6px;
+  }
+  .inputfrac input {
+    width: 70px;
+    font-size: 28px;
+    text-align: center;
+    border: 2px solid #dfe6e9;
+    border-radius: 10px;
+    padding: 6px;
+    outline: none;
+  }
+  .inputfrac input:focus { border-color: var(--blue); }
+  .inputfrac .bar { width: 80px; height: 4px; background: var(--ink); margin: 6px 0; border-radius: 2px; }
+
+  .equals { font-size: 32px; margin: 0 8px; vertical-align: middle; }
+
+  .answerwrap {
+    font-size: 30px;
+    margin: 24px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  button.action {
+    border: none;
+    padding: 13px 26px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    transition: transform .05s;
+  }
+  button.action:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.12); }
+  .check { background: var(--green); color: #fff; }
+  .hint { background: var(--yellow); color: var(--ink); }
+  .next { background: var(--blue); color: #fff; }
+
+  .feedback {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 700;
+    min-height: 28px;
+  }
+  .feedback.ok { color: var(--green); }
+  .feedback.no { color: var(--pink); }
+
+  .hintbox {
+    margin-top: 18px;
+    background: #fffbe6;
+    border: 2px dashed var(--yellow);
+    border-radius: 16px;
+    padding: 16px 18px;
+    text-align: left;
+    font-size: 15px;
+    line-height: 1.7;
+    display: none;
+  }
+  .hintbox.show { display: block; }
+  .hintbox b { color: #e67e22; }
+
+  footer { margin-top: 26px; color: #95a5a6; font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>🍰 약분 · 통분 연습</h1>
+  <p class="subtitle">문제를 풀고 별을 모아보자!</p>
+
+  <div class="tabs">
+    <button class="tab reduce active" id="tabReduce" onclick="switchMode('reduce')">약분</button>
+    <button class="tab common" id="tabCommon" onclick="switchMode('common')">통분</button>
+  </div>
+
+  <div class="card">
+    <div class="scorebar">
+      <div>⭐ 맞힘: <span id="right">0</span></div>
+      <div class="wrong">❌ 틀림: <span class="wrong" id="wrong">0</span></div>
+    </div>
+
+    <div class="problem" id="problemText"></div>
+    <div class="answerwrap" id="answerArea"></div>
+
+    <div class="btns">
+      <button class="action check" onclick="checkAnswer()">확인하기</button>
+      <button class="action hint" onclick="toggleHint()">힌트 💡</button>
+      <button class="action next" onclick="newProblem()">다음 문제 ▶</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="hintbox" id="hintBox"></div>
+  </div>
+
+  <footer>엔터 키로도 정답을 확인할 수 있어요<br><strong>Made by 정상태</strong></footer>
+
+<script>
+  let mode = 'reduce';
+  let current = {};
+  let stats = { right: 0, wrong: 0 };
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function lcm(a, b) { return a * b / gcd(a, b); }
+  function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function divisors(n) {
+    const list = [];
+    for (let i = 1; i <= n; i++) if (n % i === 0) list.push(i);
+    return list;
+  }
+
+  function fracHTML(num, den, cls = '') {
+    return `<span class="frac ${cls}"><span class="num">${num}</span><span class="bar"></span><span class="den">${den}</span></span>`;
+  }
+  function inputFracHTML(idNum, idDen) {
+    return `<span class="inputfrac"><input type="number" id="${idNum}" inputmode="numeric"><span class="bar"></span><input type="number" id="${idDen}" inputmode="numeric"></span>`;
+  }
+
+  function switchMode(m) {
+    mode = m;
+    document.getElementById('tabReduce').classList.toggle('active', m === 'reduce');
+    document.getElementById('tabCommon').classList.toggle('active', m === 'common');
+    newProblem();
+  }
+
+  function newProblem() {
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('hintBox').classList.remove('show');
+
+    if (mode === 'reduce') makeReduce();
+    else makeCommon();
+
+    // 첫 입력칸에 포커스
+    const first = document.querySelector('.inputfrac input');
+    if (first) first.focus();
+  }
+
+  // ===== 약분 =====
+  function makeReduce() {
+    // 기약분수를 만든 뒤, 공통 배수를 곱해 "약분이 필요한" 분수를 만든다
+    let a, b;
+    do {
+      a = rand(1, 8);
+      b = rand(2, 9);
+    } while (gcd(a, b) !== 1 || a >= b); // 기약 진분수
+    const k = rand(2, 6); // 곱할 배수
+    const num = a * k, den = b * k;
+    current = { type: 'reduce', num, den, ansNum: a, ansDen: b };
+
+    document.getElementById('problemText').innerHTML =
+      `다음 분수를 <b>약분</b>하여 기약분수로 만들어 보세요.`;
+    document.getElementById('answerArea').innerHTML =
+      fracHTML(num, den, 'big') +
+      `<span class="equals">=</span>` +
+      inputFracHTML('inNum', 'inDen');
+
+    attachEnter();
+  }
+
+  // ===== 통분 =====
+  function makeCommon() {
+    let d1, d2, n1, n2;
+    do {
+      d1 = rand(2, 8);
+      d2 = rand(2, 9);
+    } while (d1 === d2);
+    n1 = rand(1, d1 - 1);
+    n2 = rand(1, d2 - 1);
+    const commonDen = lcm(d1, d2);
+    const newN1 = n1 * (commonDen / d1);
+    const newN2 = n2 * (commonDen / d2);
+    current = { type: 'common', d1, d2, n1, n2, commonDen, newN1, newN2 };
+
+    document.getElementById('problemText').innerHTML =
+      `두 분수를 <b>통분</b>해 보세요. (분모를 같게!)`;
+    document.getElementById('answerArea').innerHTML =
+      fracHTML(n1, d1, 'big') + `<span class="equals">⟶</span>` + inputFracHTML('inN1', 'inD1') +
+      `<span class="equals" style="margin:0 14px;">,</span>` +
+      fracHTML(n2, d2, 'big') + `<span class="equals">⟶</span>` + inputFracHTML('inN2', 'inD2');
+
+    attachEnter();
+  }
+
+  function attachEnter() {
+    document.querySelectorAll('.inputfrac input').forEach(inp => {
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+    });
+  }
+
+  function checkAnswer() {
+    if (mode === 'reduce') checkReduce();
+    else checkCommon();
+  }
+
+  function showFeedback(ok, msg) {
+    const fb = document.getElementById('feedback');
+    fb.textContent = msg;
+    fb.className = 'feedback ' + (ok ? 'ok' : 'no');
+    if (ok) stats.right++; else stats.wrong++;
+    document.getElementById('right').textContent = stats.right;
+    document.getElementById('wrong').textContent = stats.wrong;
+  }
+
+  function checkReduce() {
+    const n = parseInt(document.getElementById('inNum').value, 10);
+    const d = parseInt(document.getElementById('inDen').value, 10);
+    if (isNaN(n) || isNaN(d)) { showFeedbackNoCount('숫자를 모두 입력해 주세요!'); return; }
+    if (n === current.ansNum && d === current.ansDen) {
+      showFeedback(true, '정답이에요! 🎉 완벽하게 약분했어요!');
+    } else if (d !== 0 && n / d === current.ansNum / current.ansDen) {
+      showFeedback(false, `값은 맞지만 더 약분할 수 있어요. 기약분수는 ${current.ansNum}/${current.ansDen} 예요.`);
+    } else {
+      showFeedback(false, `아쉬워요! 정답은 ${current.ansNum}/${current.ansDen} 입니다.`);
+    }
+  }
+
+  function checkCommon() {
+    const n1 = parseInt(document.getElementById('inN1').value, 10);
+    const d1 = parseInt(document.getElementById('inD1').value, 10);
+    const n2 = parseInt(document.getElementById('inN2').value, 10);
+    const d2 = parseInt(document.getElementById('inD2').value, 10);
+    if ([n1, d1, n2, d2].some(isNaN)) { showFeedbackNoCount('네 칸을 모두 입력해 주세요!'); return; }
+
+    const c = current;
+    const denEqual = (d1 === d2);
+    const v1ok = (d1 !== 0 && n1 / d1 === c.n1 / c.d1);
+    const v2ok = (d2 !== 0 && n2 / d2 === c.n2 / c.d2);
+
+    if (denEqual && v1ok && v2ok) {
+      if (d1 === c.commonDen) {
+        showFeedback(true, '정답이에요! 🎉 분모를 똑같이 잘 맞췄어요!');
+      } else {
+        showFeedback(true, `정답이에요! 🎉 (가장 작은 공통분모로는 ${c.newN1}/${c.commonDen}, ${c.newN2}/${c.commonDen})`);
+      }
+    } else if (!denEqual) {
+      showFeedback(false, `두 분모가 같아야 통분이에요. 정답: ${c.newN1}/${c.commonDen}, ${c.newN2}/${c.commonDen}`);
+    } else {
+      showFeedback(false, `아쉬워요! 정답은 ${c.newN1}/${c.commonDen}, ${c.newN2}/${c.commonDen} 입니다.`);
+    }
+  }
+
+  function showFeedbackNoCount(msg) {
+    const fb = document.getElementById('feedback');
+    fb.textContent = msg;
+    fb.className = 'feedback no';
+  }
+
+  // ===== 힌트 =====
+  function toggleHint() {
+    const box = document.getElementById('hintBox');
+    if (box.classList.contains('show')) { box.classList.remove('show'); return; }
+    box.innerHTML = (mode === 'reduce') ? reduceHint() : commonHint();
+    box.classList.add('show');
+  }
+
+  function reduceHint() {
+    const g = gcd(current.num, current.den);
+    return `
+      <b>약분이란?</b> 분자와 분모를 <b>같은 수로 나누어</b> 더 간단하게 만드는 거예요.<br><br>
+      ▪ ${current.num}의 약수: ${divisors(current.num).join(', ')}<br>
+      ▪ ${current.den}의 약수: ${divisors(current.den).join(', ')}<br>
+      ▪ 공통으로 가장 큰 수(최대공약수) = <b>${g}</b><br><br>
+      분자와 분모를 각각 <b>${g}</b>로 나누면 → ${current.num} ÷ ${g} = ${current.num/g},
+      ${current.den} ÷ ${g} = ${current.den/g}
+    `;
+  }
+
+  function commonHint() {
+    const c = current;
+    return `
+      <b>통분이란?</b> 분모가 다른 두 분수를 <b>분모가 같게</b> 만드는 거예요.<br><br>
+      ▪ 두 분모 ${c.d1}과 ${c.d2}의 <b>최소공배수 = ${c.commonDen}</b><br>
+      ▪ 첫 분수: 분모 ${c.d1} → ${c.commonDen} (×${c.commonDen/c.d1}) 이니 분자도 ×${c.commonDen/c.d1}<br>
+      ▪ 둘째 분수: 분모 ${c.d2} → ${c.commonDen} (×${c.commonDen/c.d2}) 이니 분자도 ×${c.commonDen/c.d2}<br><br>
+      💡 분모와 분자에 <b>같은 수</b>를 곱하면 크기는 그대로예요!
+    `;
+  }
+
+  // 시작
+  newProblem();
+</script>
+</body>
+</html>
