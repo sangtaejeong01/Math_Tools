@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>직육면체 부피 쌓기</title>
+<style>
+  :root {
+    --pink: #ff7eb9;
+    --blue: #7ec8ff;
+    --green: #6dd47e;
+    --yellow: #ffd76d;
+    --purple: #b89aff;
+    --ink: #34495e;
+    --soft: #fff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: linear-gradient(135deg, #fdeff9 0%, #e3f6ff 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+  }
+  h1 { font-size: 28px; margin: 8px 0 4px; }
+  .subtitle { color: #7f8c8d; margin: 0 0 18px; font-size: 15px; }
+
+  .card {
+    background: var(--soft);
+    border-radius: 24px;
+    padding: 24px 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+  }
+
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    background: linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    touch-action: none;            /* 드래그 회전 시 스크롤 방지 */
+    cursor: grab;
+  }
+  .stage:active { cursor: grabbing; }
+  .stage svg { width: 100%; height: 100%; display: block; }
+  .hint {
+    position: absolute; left: 10px; bottom: 8px;
+    font-size: 12px; color: #9bb0c4; pointer-events: none;
+  }
+  .cube-face { stroke: #ffffff; stroke-width: 1.2; stroke-linejoin: round; }
+  .face-z { fill: #cdeafe; }   /* 위/아래 면 */
+  .face-x { fill: #8fc9f6; }   /* 좌우 면 */
+  .face-y { fill: #62acec; }   /* 앞뒤 면 */
+
+  .toolbar { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 10px 0 4px; }
+  .toolbar button, .toolbar select {
+    border: none; padding: 10px 18px; font-size: 15px; font-weight: 800;
+    border-radius: 22px; cursor: pointer; color: #fff;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+  .b-replay { background: var(--green); }
+  .b-reset  { background: var(--yellow); color: var(--ink); }
+  .toolbar select { background: var(--purple); padding-right: 14px; }
+
+  .controls { display: flex; flex-direction: column; gap: 12px; margin: 14px 4px 4px; }
+  .ctrl { display: flex; align-items: center; gap: 12px; }
+  .ctrl label { width: 86px; text-align: right; font-weight: 800; font-size: 16px; flex-shrink: 0; }
+  .ctrl .val { width: 58px; font-weight: 800; font-size: 18px; color: var(--purple); flex-shrink: 0; text-align: left; }
+  .ctrl input[type=range] {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 10px; border-radius: 6px; background: #e6eef6; outline: none;
+  }
+  .ctrl input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--purple); cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 3px solid #fff;
+  }
+  .ctrl input[type=range]::-moz-range-thumb {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--purple); cursor: pointer; border: 3px solid #fff;
+  }
+  .c-w label { color: var(--pink); }
+  .c-d label { color: var(--green); }
+  .c-h label { color: var(--blue); }
+
+  .result {
+    margin-top: 18px; background: #faf7ff;
+    border: 2px dashed #e0d4ff; border-radius: 16px; padding: 16px;
+  }
+  .cube-info {
+    font-size: 14px; font-weight: 700; color: #7f8c8d; margin-bottom: 10px;
+    background: #fff; border-radius: 12px; padding: 6px 10px; display: inline-block;
+  }
+  .cube-info b { color: var(--purple); }
+  .formula { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+  .formula .w { color: var(--pink); }
+  .formula .d { color: var(--green); }
+  .formula .h { color: var(--blue); }
+  .formula .fu, .val .lenU { font-size: 0.62em; font-weight: 700; opacity: 0.7; margin-left: 1px; }
+  .volume { font-size: 34px; font-weight: 900; color: var(--purple); margin-top: 8px; }
+  .volume small { font-size: 18px; color: #7f8c8d; font-weight: 700; }
+  .count-note { font-size: 14px; color: #95a5a6; margin-top: 4px; }
+
+  .madeby { margin-top: 24px; font-size: 13px; color: #aab4bd; }
+
+  @media (min-width: 768px) {
+    h1 { font-size: 38px; }
+    .subtitle { font-size: 18px; }
+    .card { max-width: 780px; padding: 38px 36px; border-radius: 32px; }
+    .stage { height: 460px; }
+    .toolbar button, .toolbar select { font-size: 19px; padding: 13px 26px; }
+    .ctrl label { width: 110px; font-size: 21px; }
+    .ctrl .val { font-size: 24px; width: 66px; }
+    .ctrl input[type=range] { height: 14px; }
+    .ctrl input[type=range]::-webkit-slider-thumb { width: 38px; height: 38px; }
+    .ctrl input[type=range]::-moz-range-thumb { width: 38px; height: 38px; }
+    .hint { font-size: 15px; }
+    .cube-info { font-size: 18px; padding: 8px 14px; }
+    .formula { font-size: 30px; }
+    .volume { font-size: 46px; }
+    .volume small { font-size: 24px; }
+    .count-note { font-size: 17px; }
+    .madeby { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+  <h1>📦 직육면체 부피 쌓기</h1>
+  <p class="subtitle">한 변이 1cm인 단위 정육면체(부피 1cm³)를 쌓아 부피를 알아봐요!</p>
+
+  <div class="card">
+    <div class="stage" id="stage">
+      <svg id="scene" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+      <span class="hint">🖐️ 드래그로 회전</span>
+    </div>
+
+    <div class="toolbar">
+      <button class="b-replay" onclick="startAnim()">▶ 다시 쌓기</button>
+      <button class="b-reset" onclick="resetView()">↺ 각도 초기화</button>
+      <select id="unit" onchange="updateNumbers(currentCount)">
+        <option value="cm">길이 단위: cm</option>
+        <option value="m">길이 단위: m</option>
+        <option value="mm">길이 단위: mm</option>
+      </select>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl c-w">
+        <label>가로</label>
+        <input id="w" type="range" min="1" max="6" value="4">
+        <span class="val"><span id="wv">4</span><span class="lenU">cm</span></span>
+      </div>
+      <div class="ctrl c-d">
+        <label>세로</label>
+        <input id="d" type="range" min="1" max="6" value="3">
+        <span class="val"><span id="dv">3</span><span class="lenU">cm</span></span>
+      </div>
+      <div class="ctrl c-h">
+        <label>높이</label>
+        <input id="h" type="range" min="1" max="6" value="2">
+        <span class="val"><span id="hv">2</span><span class="lenU">cm</span></span>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="cube-info">단위 정육면체 1개 = <b id="cubeUnit">1cm³</b> (<span id="cubeKor">1세제곱센티미터</span>)</div>
+      <div class="formula">
+        부피 = <span class="w"><span id="fw">4</span><span class="fu">cm</span></span>
+        × <span class="d"><span id="fd">3</span><span class="fu">cm</span></span>
+        × <span class="h"><span id="fh">2</span><span class="fu">cm</span></span>
+      </div>
+      <div class="volume"><span id="vol">24</span> <small id="volUnit">cm³</small></div>
+      <div class="count-note">= 단위 정육면체 <b id="cnt">24</b>개가 모인 부피</div>
+    </div>
+  </div>
+
+  <p class="madeby">Made by 정상태</p>
+
+<script>
+  const S = 30;                 // 단위 큐브 한 변(px)
+  let W = 4, D = 3, H = 2;
+  let yaw = 0.7, pitch = 0.6;   // 회전 각(라디안)
+  let order = [];               // 쌓는 순서대로 정렬된 큐브 목록
+  let revealed = 0;             // 현재까지 쌓인 개수
+  let currentCount = 0;         // 화면에 표시 중인 개수
+  let animTimer = null;
+
+  // 3D 회전 + 정사영
+  function project(x, y, z) {
+    const cx = W / 2, cy = D / 2, cz = H / 2;
+    const dx = x - cx, dy = y - cy, dz = z - cz;
+    // 수직축(z) 기준 회전 (yaw)
+    const X = dx * Math.cos(yaw) - dy * Math.sin(yaw);
+    const Y = dx * Math.sin(yaw) + dy * Math.cos(yaw);
+    const Z = dz;
+    // 가로축 기준 기울이기 (pitch) → 윗면이 보이게
+    const Y2 = Y * Math.cos(pitch) - Z * Math.sin(pitch);
+    const Z2 = Y * Math.sin(pitch) + Z * Math.cos(pitch);
+    return { sx: X * S, sy: -Z2 * S, depth: Y2 };
+  }
+
+  // 큐브 한 칸의 6개 면 정의 (이웃 방향, 모서리 4개, 색 분류)
+  function cubeFaces(x, y, z) {
+    return [
+      { nb: [x+1,y,z], cls: "face-x", pts: [[x+1,y,z],[x+1,y+1,z],[x+1,y+1,z+1],[x+1,y,z+1]] },
+      { nb: [x-1,y,z], cls: "face-x", pts: [[x,y,z],[x,y,z+1],[x,y+1,z+1],[x,y+1,z]] },
+      { nb: [x,y+1,z], cls: "face-y", pts: [[x,y+1,z],[x,y+1,z+1],[x+1,y+1,z+1],[x+1,y+1,z]] },
+      { nb: [x,y-1,z], cls: "face-y", pts: [[x,y,z],[x+1,y,z],[x+1,y,z+1],[x,y,z+1]] },
+      { nb: [x,y,z+1], cls: "face-z", pts: [[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]] },
+      { nb: [x,y,z-1], cls: "face-z", pts: [[x,y,z],[x,y+1,z],[x+1,y+1,z],[x+1,y,z]] },
+    ];
+  }
+
+  function render() {
+    const cubes = order.slice(0, revealed);
+    const present = new Set(cubes.map(c => c.join(",")));
+
+    // 표면(이웃이 없는) 면만 모으고, 깊이로 정렬해 화가 알고리즘으로 그린다
+    const faces = [];
+    for (const [x, y, z] of cubes) {
+      for (const f of cubeFaces(x, y, z)) {
+        if (present.has(f.nb.join(","))) continue;   // 안쪽 면은 생략
+        const proj = f.pts.map(p => project(p[0], p[1], p[2]));
+        const depth = proj.reduce((s, p) => s + p.depth, 0) / 4;
+        faces.push({ proj, depth, cls: f.cls });
+      }
+    }
+    faces.sort((a, b) => b.depth - a.depth);   // 먼 것부터 (depth 큰 쪽이 뒤)
+
+    let svg = "";
+    for (const f of faces) {
+      const pts = f.proj.map(p => `${p.sx.toFixed(1)},${p.sy.toFixed(1)}`).join(" ");
+      svg += `<polygon class="cube-face ${f.cls}" points="${pts}"></polygon>`;
+    }
+
+    // viewBox: 전체 박스 8꼭짓점 기준으로 고정 → 쌓는 동안 흔들리지 않음
+    const corners = [];
+    for (const xx of [0, W]) for (const yy of [0, D]) for (const zz of [0, H])
+      corners.push(project(xx, yy, zz));
+    const xs = corners.map(p => p.sx), ys = corners.map(p => p.sy);
+    const pad = 20;
+    const minX = Math.min(...xs) - pad, maxX = Math.max(...xs) + pad;
+    const minY = Math.min(...ys) - pad, maxY = Math.max(...ys) + pad;
+    const scene = document.getElementById('scene');
+    scene.setAttribute('viewBox', `${minX} ${minY} ${maxX - minX} ${maxY - minY}`);
+    scene.innerHTML = svg;
+  }
+
+  function buildOrder() {
+    order = [];
+    for (let z = 0; z < H; z++)        // 아래층부터 한 층씩
+      for (let y = 0; y < D; y++)
+        for (let x = 0; x < W; x++)
+          order.push([x, y, z]);
+  }
+
+  // 길이 단위별 정보 (길이 = cm, 부피 = 세제곱 = cm³)
+  const UNITS = {
+    cm: { len: "cm", vol: "cm³", cube: "1cm³", kor: "1세제곱센티미터" },
+    m:  { len: "m",  vol: "m³",  cube: "1m³",  kor: "1세제곱미터" },
+    mm: { len: "mm", vol: "mm³", cube: "1mm³", kor: "1세제곱밀리미터" },
+  };
+  const unitLabel = () => document.getElementById('unit').value;
+
+  function updateNumbers(count) {
+    currentCount = count;
+    const u = UNITS[unitLabel()];
+    document.getElementById('wv').textContent = W;
+    document.getElementById('dv').textContent = D;
+    document.getElementById('hv').textContent = H;
+    document.getElementById('fw').textContent = W;
+    document.getElementById('fd').textContent = D;
+    document.getElementById('fh').textContent = H;
+    document.getElementById('vol').textContent = count;
+    // 길이 단위(cm) 표시
+    document.querySelectorAll('.lenU, .fu').forEach(el => el.textContent = u.len);
+    // 부피 단위(세제곱, cm³) 표시
+    document.getElementById('volUnit').textContent = u.vol;
+    document.getElementById('cubeUnit').textContent = u.cube;
+    document.getElementById('cubeKor').textContent = u.kor;
+    document.getElementById('cnt').textContent = count;
+  }
+
+  function startAnim() {
+    W = +document.getElementById('w').value;
+    D = +document.getElementById('d').value;
+    H = +document.getElementById('h').value;
+    buildOrder();
+    const vol = W * D * H;
+    revealed = 0;
+    updateNumbers(0);
+    render();
+    clearInterval(animTimer);
+    const delay = Math.max(25, Math.round(900 / vol));
+    animTimer = setInterval(() => {
+      revealed++;
+      render();
+      updateNumbers(revealed);
+      if (revealed >= vol) clearInterval(animTimer);
+    }, delay);
+  }
+
+  function resetView() {
+    yaw = 0.7; pitch = 0.6;
+    render();
+  }
+
+  // 슬라이더 → 새로 쌓기
+  ['w', 'd', 'h'].forEach(id =>
+    document.getElementById(id).addEventListener('input', startAnim)
+  );
+
+  // 드래그로 회전
+  const stage = document.getElementById('stage');
+  let dragging = false, lastX = 0, lastY = 0;
+  stage.addEventListener('pointerdown', e => {
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    yaw += (e.clientX - lastX) * 0.01;
+    pitch += (e.clientY - lastY) * 0.01;
+    pitch = Math.max(0.05, Math.min(1.45, pitch));   // 위/아래 뒤집힘 방지
+    lastX = e.clientX; lastY = e.clientY;
+    render();
+  });
+  const endDrag = () => dragging = false;
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+
+  startAnim();
+</script>
+</body>
+</html>
