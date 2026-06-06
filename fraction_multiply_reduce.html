@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분수의 곱셈 · 약분 연습</title>
+<style>
+  :root {
+    --pink: #ff7eb9;
+    --blue: #7ec8ff;
+    --green: #6dd47e;
+    --yellow: #ffd76d;
+    --purple: #b89aff;
+    --ink: #34495e;
+    --soft: #fff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: linear-gradient(135deg, #fdeff9 0%, #e3f6ff 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+  }
+  h1 { font-size: 28px; margin: 8px 0 4px; }
+  .subtitle { color: #7f8c8d; margin: 0 0 20px; font-size: 15px; }
+
+  .card {
+    background: var(--soft);
+    border-radius: 24px;
+    padding: 30px 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+  }
+
+  /* 태블릿(갤럭시탭 등) 최적화: 화면이 넓을 때 크게 */
+  @media (min-width: 768px) {
+    h1 { font-size: 40px; }
+    .subtitle { font-size: 19px; }
+    .card {
+      max-width: 760px;
+      padding: 46px 44px;
+      border-radius: 32px;
+    }
+    .scorebar { font-size: 20px; gap: 36px; margin-bottom: 26px; }
+    .frac { font-size: 50px; }
+    .frac .bar { min-width: 70px; height: 6px; }
+    .op { font-size: 46px; }
+    .expr { gap: 22px; margin: 16px 0 30px; }
+    .answer input { width: 110px; font-size: 38px; padding: 12px 8px; }
+    .answer .ibar { width: 118px; height: 6px; }
+    .answer span { font-size: 38px !important; }
+    /* 손가락 터치하기 좋은 큰 버튼 */
+    button.act { padding: 18px 40px; font-size: 22px; border-radius: 40px; }
+    .btns { gap: 16px; margin-top: 24px; }
+    .feedback { font-size: 24px; min-height: 36px; }
+    .steps { font-size: 21px; padding: 22px 26px; border-radius: 22px; }
+    .steps h3 { font-size: 21px; }
+    .steps .big { font-size: 28px; }
+    .madeby { font-size: 16px; }
+  }
+
+  .scorebar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 18px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .scorebar .ok { color: var(--green); }
+  .scorebar .no { color: var(--pink); }
+
+  /* 분수식 표시 */
+  .expr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 10px 0 22px;
+    flex-wrap: wrap;
+  }
+  .frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .frac .num, .frac .den {
+    padding: 2px 10px;
+    transition: color .25s, transform .25s;
+  }
+  .frac .bar {
+    width: 100%;
+    min-width: 48px;
+    height: 4px;
+    background: var(--ink);
+    border-radius: 2px;
+    margin: 3px 0;
+  }
+  .op { font-size: 32px; font-weight: 800; color: #95a5a6; }
+
+  /* 약분 강조 색상 */
+  .cut-a { color: var(--pink) !important; position: relative; }
+  .cut-b { color: var(--blue) !important; position: relative; }
+  .cut-c { color: var(--purple) !important; position: relative; }
+  .struck { position: relative; }
+  .struck::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 130%; height: 3px;
+    background: currentColor;
+    transform: translate(-50%,-50%) rotate(-18deg);
+    border-radius: 2px;
+  }
+  .reduced {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    margin-top: 2px;
+  }
+
+  .answer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px 0 6px;
+  }
+  .answer .frac-input {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .answer input {
+    width: 72px;
+    font-size: 26px;
+    font-weight: 800;
+    text-align: center;
+    border: 2px solid #dfe6e9;
+    border-radius: 10px;
+    padding: 6px 4px;
+    color: var(--ink);
+    outline: none;
+  }
+  .answer input:focus { border-color: var(--purple); }
+  .answer .ibar {
+    width: 78px; height: 4px;
+    background: var(--ink);
+    border-radius: 2px;
+    margin: 4px 0;
+  }
+
+  .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  button.act {
+    border: none;
+    padding: 12px 24px;
+    font-size: 17px;
+    font-weight: 800;
+    border-radius: 30px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    transition: transform .1s, opacity .2s;
+  }
+  button.act:hover { transform: translateY(-2px); }
+  button.act:active { transform: translateY(0); }
+  .b-check { background: var(--green); }
+  .b-hint  { background: var(--yellow); color: var(--ink); }
+  .b-next  { background: var(--blue); }
+
+  .feedback {
+    min-height: 28px;
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .feedback.good { color: var(--green); }
+  .feedback.bad  { color: var(--pink); }
+
+  /* 풀이 단계 */
+  .steps {
+    text-align: left;
+    margin-top: 18px;
+    background: #faf7ff;
+    border: 2px dashed #e0d4ff;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-size: 16px;
+    line-height: 1.7;
+    display: none;
+  }
+  .steps.show { display: block; }
+  .steps h3 { margin: 0 0 8px; font-size: 16px; color: var(--purple); }
+  .steps .step { margin: 6px 0; }
+  .steps .big { font-size: 22px; font-weight: 800; }
+  .chip {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 8px;
+    font-weight: 800;
+  }
+  .chip.p { background: #ffe0ee; color: #d6326f; }
+  .chip.b { background: #dcf0ff; color: #1f7fc4; }
+
+  .madeby { margin-top: 24px; font-size: 13px; color: #aab4bd; }
+</style>
+</head>
+<body>
+  <h1>✖️ 분수의 곱셈 약분 연습</h1>
+  <p class="subtitle">곱셈하기 전에 약분하면 계산이 훨씬 쉬워요!</p>
+
+  <div class="card">
+    <div class="scorebar">
+      <span class="ok">⭕ 맞은 개수: <span id="okCount">0</span></span>
+      <span class="no">❌ 틀린 개수: <span id="noCount">0</span></span>
+    </div>
+
+    <div class="expr" id="expr"></div>
+
+    <div class="answer">
+      <span style="font-size:26px;font-weight:800;">=</span>
+      <div class="frac-input">
+        <input id="ansNum" type="text" inputmode="numeric" placeholder="분자" autocomplete="off">
+        <div class="ibar"></div>
+        <input id="ansDen" type="text" inputmode="numeric" placeholder="분모" autocomplete="off">
+      </div>
+    </div>
+    <p style="font-size:13px;color:#95a5a6;margin:4px 0 0;">※ 가장 작은 분수(기약분수)로 답하세요</p>
+
+    <div class="btns">
+      <button class="act b-check" onclick="check()">정답 확인</button>
+      <button class="act b-hint" onclick="toggleSteps()">약분 풀이 보기</button>
+      <button class="act b-next" onclick="newProblem()">다음 문제 ▶</button>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <p class="madeby">Made by 정상태</p>
+
+<script>
+  let cur = null;
+  let okCount = 0, noCount = 0;
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  // 약분이 일어나도록 일부러 공약수를 심어서 문제를 만든다
+  function makeProblem() {
+    let a, b, c, d;
+    // 교차/직접 약분이 가능하도록 구성
+    const tries = 80;
+    for (let i = 0; i < tries; i++) {
+      a = rand(1, 9); b = rand(2, 12);
+      c = rand(1, 9); d = rand(2, 12);
+      if (a >= b || c >= d) continue;               // 진분수로
+      const crossable =
+        gcd(a, d) > 1 || gcd(c, b) > 1 ||           // 교차 약분 가능
+        gcd(a, b) > 1 || gcd(c, d) > 1;             // 자체 약분 가능
+      const rawNum = a * c, rawDen = b * d;
+      if (crossable && gcd(rawNum, rawDen) > 1) break;
+    }
+    const num = a * c, den = b * d;
+    const g = gcd(num, den);
+    return { a, b, c, d, num, den, ansNum: num / g, ansDen: den / g };
+  }
+
+  function renderExpr() {
+    const { a, b, c, d } = cur;
+    document.getElementById('expr').innerHTML = `
+      <div class="frac">
+        <span class="num">${a}</span>
+        <span class="bar"></span>
+        <span class="den">${b}</span>
+      </div>
+      <span class="op">×</span>
+      <div class="frac">
+        <span class="num">${c}</span>
+        <span class="bar"></span>
+        <span class="den">${d}</span>
+      </div>
+    `;
+  }
+
+  function buildSteps() {
+    const { a, b, c, d, num, den, ansNum, ansDen } = cur;
+    // 교차/직접 약분 안내
+    let lines = [];
+    const gad = gcd(a, d), gcb = gcd(c, b), gab = gcd(a, b), gcd_ = gcd(c, d);
+
+    lines.push(`<div class="step">① 곱셈은 <b>분자끼리, 분모끼리</b> 곱해요: <span class="big">${a}×${c} / ${b}×${d}</span></div>`);
+
+    let cutMsgs = [];
+    if (gad > 1) cutMsgs.push(`왼쪽 분자 <span class="chip p">${a}</span> 와 오른쪽 분모 <span class="chip b">${d}</span> 는 <b>${gad}</b>로 약분`);
+    if (gcb > 1) cutMsgs.push(`오른쪽 분자 <span class="chip p">${c}</span> 와 왼쪽 분모 <span class="chip b">${b}</span> 는 <b>${gcb}</b>로 약분`);
+    if (gab > 1) cutMsgs.push(`같은 분수의 분자 <span class="chip p">${a}</span> 와 분모 <span class="chip b">${b}</span> 는 <b>${gab}</b>로 약분`);
+    if (gcd_ > 1) cutMsgs.push(`같은 분수의 분자 <span class="chip p">${c}</span> 와 분모 <span class="chip b">${d}</span> 는 <b>${gcd_}</b>로 약분`);
+
+    if (cutMsgs.length) {
+      lines.push(`<div class="step">② 곱하기 전에 약분할 수 있어요!<br>` +
+        cutMsgs.map(m => "• " + m).join("<br>") + `</div>`);
+    } else {
+      lines.push(`<div class="step">② 곱한 뒤에 약분해요.</div>`);
+    }
+
+    lines.push(`<div class="step">③ 계산하면 <span class="big">${num}/${den}</span> 이고, 최대공약수 <b>${gcd(num,den)}</b>로 약분하면…</div>`);
+    lines.push(`<div class="step">④ 정답: <span class="big" style="color:var(--green)">${ansNum}/${ansDen}</span></div>`);
+
+    document.getElementById('steps').innerHTML =
+      `<h3>약분 풀이 과정</h3>` + lines.join("");
+  }
+
+  function newProblem() {
+    cur = makeProblem();
+    renderExpr();
+    buildSteps();
+    document.getElementById('ansNum').value = "";
+    document.getElementById('ansDen').value = "";
+    document.getElementById('feedback').textContent = "";
+    document.getElementById('feedback').className = "feedback";
+    document.getElementById('steps').classList.remove('show');
+    document.getElementById('ansNum').focus();
+  }
+
+  function check() {
+    const n = parseInt(document.getElementById('ansNum').value, 10);
+    const d = parseInt(document.getElementById('ansDen').value, 10);
+    const fb = document.getElementById('feedback');
+    if (isNaN(n) || isNaN(d) || d === 0) {
+      fb.textContent = "분자와 분모를 모두 입력해 주세요 ✏️";
+      fb.className = "feedback bad";
+      return;
+    }
+    // 값이 맞고 기약분수인지 확인
+    const valueMatches = n * cur.den === cur.num * d;
+    const isReduced = gcd(Math.abs(n), Math.abs(d)) === 1;
+
+    if (valueMatches && n === cur.ansNum && d === cur.ansDen) {
+      fb.textContent = "정답이에요! 🎉 약분을 정확히 했어요!";
+      fb.className = "feedback good";
+      okCount++;
+    } else if (valueMatches && !isReduced) {
+      fb.textContent = `값은 맞지만 더 약분할 수 있어요! 🔍 (정답: ${cur.ansNum}/${cur.ansDen})`;
+      fb.className = "feedback bad";
+      noCount++;
+    } else {
+      fb.textContent = "아쉬워요 😅 약분 풀이를 확인해 볼까요?";
+      fb.className = "feedback bad";
+      noCount++;
+    }
+    document.getElementById('okCount').textContent = okCount;
+    document.getElementById('noCount').textContent = noCount;
+  }
+
+  function toggleSteps() {
+    document.getElementById('steps').classList.toggle('show');
+  }
+
+  // 엔터로 정답 확인
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') check();
+  });
+
+  newProblem();
+</script>
+</body>
+</html>
