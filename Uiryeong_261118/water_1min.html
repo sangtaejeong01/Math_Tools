@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분수의 나눗셈 · 1분 환산 시뮬레이터</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 40px;
+    font-family: "맑은 고딕", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: #eef4f8; color: #1c2b36;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  /* ── 머리말 ── */
+  header {
+    background: linear-gradient(135deg, #1f7a8c, #2ba3a0);
+    color: #fff; padding: 18px 0 22px; margin-bottom: 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  }
+  header .wrap { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .badge {
+    background: #ffd166; color: #6b4a00; font-weight: 800;
+    border-radius: 999px; padding: 6px 14px; font-size: 15px; white-space: nowrap;
+  }
+  h1 { font-size: 21px; margin: 4px 0 6px; }
+  .quest { font-size: 16px; line-height: 1.6; opacity: .95; max-width: 800px; }
+  .sig-head { margin-left: auto; text-align: right; font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.5; }
+
+  /* ── 카드 공통 ── */
+  .card {
+    background: #fff; border-radius: 14px; padding: 18px 20px; margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(31,60,80,.10);
+  }
+  .card > h2 {
+    font-size: 17px; margin: 0 0 14px; padding-left: 10px;
+    border-left: 5px solid #1f7a8c; line-height: 1.3;
+  }
+  .hint { font-size: 13.5px; color: #5d7386; line-height: 1.6; }
+
+  /* ── 수도 2개 ── */
+  .taps { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 780px) { .taps { grid-template-columns: 1fr; } }
+  .tap {
+    border: 2px solid #dbe6ee; border-radius: 12px; padding: 14px; background: #fbfdff;
+    position: relative; transition: border-color .2s, box-shadow .2s;
+  }
+  .tap.win { border-color: #ffb703; box-shadow: 0 0 0 4px rgba(255,183,3,.18); }
+  .tap-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .who {
+    font-weight: 800; font-size: 17px; color: #fff; border-radius: 999px;
+    padding: 5px 16px;
+  }
+  .A .who { background: #d42424; }
+  .B .who { background: #1a4fd9; }
+  .say {
+    font-size: 14.5px; background: #fff; border: 1.5px solid #c9d8e4;
+    border-radius: 10px; padding: 6px 12px; line-height: 1.5;
+  }
+
+  /* 수도꼭지 + 물통 */
+  .stage { display: flex; align-items: flex-end; gap: 14px; }
+  .faucet-col { width: 96px; flex: 0 0 96px; }
+  .faucet {
+    position: relative; height: 116px;
+  }
+  .pipe { position: absolute; left: 4px; top: 8px; width: 26px; height: 52px; background: #9aa7b2; border-radius: 5px; }
+  .spout { position: absolute; left: 26px; top: 20px; width: 46px; height: 15px; background: #b6c2cc; border-radius: 4px; }
+  .nozzle { position: absolute; left: 60px; top: 33px; width: 16px; height: 14px; background: #8d9aa5; border-radius: 0 0 5px 5px; }
+  .handle { position: absolute; left: 2px; top: -4px; width: 30px; height: 12px; background: #6f7d88; border-radius: 4px; transition: transform .3s; transform-origin: 50% 50%; }
+  .flowing .handle { transform: rotate(-28deg); }
+  .stream {
+    position: absolute; left: 64px; top: 47px; width: 9px; height: 62px;
+    background: linear-gradient(#7fd3f5, #35a9e0); border-radius: 4px;
+    opacity: 0; transition: opacity .15s;
+  }
+  .flowing .stream { opacity: 1; animation: pour .45s linear infinite; }
+  @keyframes pour {
+    0%   { background-position: 0 0; }
+    100% { background-position: 0 14px; }
+  }
+  .flowing .stream { background-size: 100% 14px;
+    background-image: repeating-linear-gradient(#8ddcf8 0 6px, #2f9fd8 6px 14px); }
+
+  .bucket-col { flex: 1 1 auto; }
+  .bucket {
+    position: relative; height: 168px; border: 4px solid #6b7c8a; border-top: none;
+    border-radius: 0 0 16px 16px; background: #f2f7fa; overflow: hidden;
+  }
+  .A .bucket { border-color: #b03030; background: #fdf3f3; }
+  .B .bucket { border-color: #3457b8; background: #f2f5fe; }
+  .water {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+    background: linear-gradient(#4fb8e8, #1d7fc0);
+  }
+  .water::before {
+    content: ""; position: absolute; left: -10%; right: -10%; top: -7px; height: 14px;
+    background: #4fb8e8; border-radius: 50%;
+  }
+  .goalline {
+    position: absolute; left: 0; right: 0; border-top: 3px dashed #ff8c00;
+    font-size: 11.5px; color: #b35c00; font-weight: 700;
+  }
+  .goalline span { position: absolute; right: 4px; top: -16px; background: #fff5e6; padding: 0 4px; border-radius: 4px; }
+  .ticks { position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; }
+  .ticks i { position: absolute; left: 0; width: 10px; border-top: 1px solid rgba(0,0,0,.18); }
+
+  .readout { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    background: #eef4f8; border-radius: 8px; padding: 6px 10px; font-size: 14px;
+    border: 1px solid #dbe6ee;
+  }
+  .chip b { font-size: 17px; }
+  .chip.big { background: #fff8e6; border-color: #ffd88a; }
+
+  /* ── 컨트롤 ── */
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+  button {
+    font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+    border: none; border-radius: 9px; padding: 10px 18px; background: #1f7a8c; color: #fff;
+    transition: filter .15s, transform .05s;
+  }
+  button:hover { filter: brightness(1.1); }
+  button:active { transform: translateY(1px); }
+  button.ghost { background: #e4edf3; color: #33566b; }
+  button.warm { background: #ef7c1b; }
+  button:disabled { background: #c6d2da; color: #8b9aa5; cursor: default; }
+
+  /* 시간 진행 바 */
+  .timeline { margin-top: 14px; }
+  .track {
+    position: relative; height: 34px; background: #e7eff5; border-radius: 8px;
+    border: 1px solid #cfdde7; overflow: hidden;
+  }
+  .track .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(31,122,140,.22); }
+  .track .mark { position: absolute; top: 0; bottom: 0; width: 3px; }
+  .track .mark.a { background: #d42424; }
+  .track .mark.b { background: #1a4fd9; }
+  .track .lab {
+    position: absolute; top: 4px; font-size: 12px; font-weight: 700; transform: translateX(-50%);
+    background: #fff; border-radius: 5px; padding: 1px 5px; white-space: nowrap;
+  }
+  .track .lab.a { color: #d42424; border: 1px solid #f0b8b8; }
+  .track .lab.b { color: #1a4fd9; border: 1px solid #b8c6f0; }
+  .track .cursor { position: absolute; top: 0; bottom: 0; width: 2px; background: #111; }
+  .tl-ends { display: flex; justify-content: space-between; font-size: 12.5px; color: #5d7386; margin-top: 4px; }
+
+  /* ── 원리 패널 ── */
+  .prin { border: 2px solid #dbe6ee; border-radius: 12px; padding: 14px; margin-bottom: 14px; background: #fbfdff; }
+  .prin .ph { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .barwrap { position: relative; }
+  .bar { display: flex; height: 62px; border: 2px solid #6b7c8a; border-radius: 8px; overflow: hidden; background: #fff; }
+  .cell {
+    flex: 1 1 0; border-right: 1px solid #b9c7d2; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 12px; color: #4a5f70;
+    transition: background .35s, color .35s; position: relative; min-width: 0;
+  }
+  .cell:last-child { border-right: none; }
+  .cell.on { background: #ffd9d9; color: #8c1f1f; font-weight: 700; }
+  .B-prin .cell.on { background: #d9e2ff; color: #1b3a8c; }
+  .cell.unit { background: #ffe9a8; color: #6b4a00; font-weight: 800; box-shadow: inset 0 0 0 2px #e8a600; }
+  .cell.extra { background: #dff5e4; color: #1c6b34; font-weight: 700; }
+  .cell .amt { font-size: 13.5px; font-weight: 800; }
+  .cell .tm { font-size: 10.5px; opacity: .8; }
+  .brace {
+    font-size: 13px; color: #333; margin-top: 6px; height: 22px; position: relative;
+  }
+  .brace .seg {
+    position: absolute; top: 0; border-top: 2px solid #d42424; height: 8px;
+    border-left: 2px solid #d42424; border-right: 2px solid #d42424;
+  }
+  .brace .segtxt { position: absolute; top: 8px; transform: translateX(-50%); font-weight: 800; color: #d42424; white-space: nowrap; }
+  .B-prin .brace .seg { border-color: #1a4fd9; }
+  .B-prin .brace .segtxt { color: #1a4fd9; }
+
+  .steptxt {
+    margin-top: 30px; font-size: 15px; line-height: 1.75; background: #fff;
+    border: 1px dashed #bcd0dd; border-radius: 10px; padding: 12px 14px; min-height: 58px;
+  }
+  .steptxt .k { color: #d42424; font-weight: 800; }
+  .B-prin .steptxt .k { color: #1a4fd9; }
+
+  .eqbox { margin-top: 12px; font-size: 18px; line-height: 2.1; }
+  .eqline { opacity: .25; transition: opacity .3s; }
+  .eqline.show { opacity: 1; }
+  .eqline b { color: #c2410c; }
+
+  /* 분수 표기 */
+  .fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: -0.55em; margin: 0 2px; line-height: 1.05; }
+  .fr .n { border-bottom: 1.6px solid currentColor; padding: 0 3px; }
+  .fr .d { padding: 0 3px; }
+
+  /* 설정 */
+  .setrow { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 8px; flex-wrap: wrap; }
+  .setrow label { min-width: 92px; color: #476072; font-weight: 700; }
+  input[type=range] { flex: 1 1 120px; min-width: 110px; accent-color: #1f7a8c; }
+  .val { min-width: 46px; text-align: center; font-weight: 800; font-size: 15px; color: #1f7a8c; }
+
+  /* 결론 */
+  .verdict {
+    font-size: 18px; font-weight: 800; text-align: center; padding: 14px;
+    border-radius: 12px; background: #fff8e6; border: 2px solid #ffd88a; color: #7a4a00;
+    line-height: 1.7;
+  }
+  .verdict.tie { background: #eef4f8; border-color: #cfdde7; color: #33566b; }
+  .verdict small { display: block; font-size: 14px; font-weight: 600; margin-top: 6px; color: #6b5a3a; }
+
+  footer.sig { text-align: center; font-size: 12px; color: #8b9aa5; line-height: 1.6; margin-top: 8px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tabs button { padding: 8px 14px; font-size: 14px; }
+  .tabs button.off { background: #e4edf3; color: #33566b; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <span class="badge">수학이 필요해</span>
+      <h1>1분 동안이면 누가 받은 물이 더 많을까?</h1>
+      <p class="quest">샛별이와 하늘이가 서로 다른 수도에서 물을 받았습니다. 두 수도에서 물이 각각 일정하게 나올 때,
+        <b>1분 동안</b> 물을 받는다면 누가 받은 물의 양이 더 많을까요?</p>
+    </div>
+    <div class="sig-head">Made by Sangtae Jeong<br>ver 260908_1123</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 물 받기 체험 -->
+  <div class="card">
+    <h2>① 두 수도를 함께 틀어 1분까지 받아 보기</h2>
+    <p class="hint">두 물통의 눈금 간격은 서로 같습니다. 점선(1분 예상선)까지 물이 차면 1분 동안 받은 양이 됩니다.
+      말풍선에 적힌 시간이 되면 표시가 뜹니다.</p>
+
+    <div class="taps">
+      <!-- 샛별 -->
+      <div class="tap A" id="tapA">
+        <div class="tap-head">
+          <span class="who">샛별</span>
+          <span class="say" id="sayA"></span>
+        </div>
+        <div class="stage">
+          <div class="faucet-col">
+            <div class="faucet" id="fauA">
+              <div class="handle"></div><div class="pipe"></div>
+              <div class="spout"></div><div class="nozzle"></div><div class="stream"></div>
+            </div>
+          </div>
+          <div class="bucket-col">
+            <div class="bucket">
+              <div class="ticks" id="tickA"></div>
+              <div class="water" id="watA"></div>
+              <div class="goalline" id="goalA"><span>1분 예상</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="readout">
+          <span class="chip">받은 시간 <b id="tA">0</b> 분</span>
+          <span class="chip">받은 물 <b id="vA">0</b> L</span>
+          <span class="chip big">1분이면 <b id="rA">0</b> L</span>
+        </div>
+      </div>
+
+      <!-- 하늘 -->
+      <div class="tap B" id="tapB">
+        <div class="tap-head">
+          <span class="who">하늘</span>
+          <span class="say" id="sayB"></span>
+        </div>
+        <div class="stage">
+          <div class="faucet-col">
+            <div class="faucet" id="fauB">
+              <div class="handle"></div><div class="pipe"></div>
+              <div class="spout"></div><div class="nozzle"></div><div class="stream"></div>
+            </div>
+          </div>
+          <div class="bucket-col">
+            <div class="bucket">
+              <div class="ticks" id="tickB"></div>
+              <div class="water" id="watB"></div>
+              <div class="goalline" id="goalB"><span>1분 예상</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="readout">
+          <span class="chip">받은 시간 <b id="tB">0</b> 분</span>
+          <span class="chip">받은 물 <b id="vB">0</b> L</span>
+          <span class="chip big">1분이면 <b id="rB">0</b> L</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="track" id="track">
+        <div class="fill" id="tlFill"></div>
+        <div class="mark a" id="mkA"></div><div class="lab a" id="lbA"></div>
+        <div class="mark b" id="mkB"></div><div class="lab b" id="lbB"></div>
+        <div class="cursor" id="cur"></div>
+      </div>
+      <div class="tl-ends"><span>0분</span><span>1분</span></div>
+    </div>
+
+    <div class="controls">
+      <button id="btnPlay">▶ 물 받기 시작</button>
+      <button id="btnReset" class="ghost">↺ 처음으로</button>
+      <span class="chip">진행 속도
+        <select id="spd" style="font-family:inherit;font-size:14px;border:1px solid #cfdde7;border-radius:6px;padding:2px 4px;">
+          <option value="0.5">느리게</option>
+          <option value="1" selected>보통</option>
+          <option value="2">빠르게</option>
+        </select>
+      </span>
+      <span class="chip" id="flag" style="visibility:hidden">–</span>
+    </div>
+  </div>
+
+  <!-- ② 원리 -->
+  <div class="card">
+    <h2>② 왜 그렇게 되나? — 1분을 똑같이 나누어 보기</h2>
+    <p class="hint">1분을 분모만큼 똑같이 나눕니다. 색칠한 칸이 실제로 물을 받은 시간이고,
+      한 칸(단위분수 시간)에 받는 물의 양을 먼저 구한 뒤 1분만큼 모으면 답이 나옵니다.</p>
+
+    <div class="tabs">
+      <button id="tabA">샛별 보기</button>
+      <button id="tabB" class="off">하늘 보기</button>
+      <button id="tabAll" class="off">둘 다 보기</button>
+    </div>
+
+    <div id="prinA" class="prin A-prin">
+      <div class="ph"><span class="who" style="background:#d42424">샛별</span><span class="say" id="phA"></span></div>
+      <div class="barwrap">
+        <div class="bar" id="barA"></div>
+        <div class="brace" id="brA"></div>
+      </div>
+      <div class="steptxt" id="stA"></div>
+      <div class="eqbox" id="eqA"></div>
+    </div>
+
+    <div id="prinB" class="prin B-prin" style="display:none">
+      <div class="ph"><span class="who" style="background:#1a4fd9">하늘</span><span class="say" id="phB"></span></div>
+      <div class="barwrap">
+        <div class="bar" id="barB"></div>
+        <div class="brace" id="brB"></div>
+      </div>
+      <div class="steptxt" id="stB"></div>
+      <div class="eqbox" id="eqB"></div>
+    </div>
+
+    <div class="controls">
+      <button id="btnStep" class="warm">다음 단계 ▶</button>
+      <button id="btnStepReset" class="ghost">↺ 단계 처음으로</button>
+      <span class="chip">단계 <b id="stepNo">0</b> / 3</span>
+    </div>
+  </div>
+
+  <!-- ③ 결론 -->
+  <div class="card">
+    <h2>③ 비교하여 답하기</h2>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <!-- ④ 값 바꾸기 -->
+  <div class="card">
+    <h2>④ 숫자를 바꾸어 더 알아보기</h2>
+    <div class="taps">
+      <div class="tap A">
+        <div class="tap-head"><span class="who">샛별</span></div>
+        <div class="setrow"><label>받은 물(L)</label><input type="range" id="sLA" min="1" max="40" step="1"><span class="val" id="oLA"></span></div>
+        <div class="setrow"><label>걸린 시간 분자</label><input type="range" id="sNA" min="1" max="11" step="1"><span class="val" id="oNA"></span></div>
+        <div class="setrow"><label>걸린 시간 분모</label><input type="range" id="sDA" min="2" max="12" step="1"><span class="val" id="oDA"></span></div>
+      </div>
+      <div class="tap B">
+        <div class="tap-head"><span class="who">하늘</span></div>
+        <div class="setrow"><label>받은 물(L)</label><input type="range" id="sLB" min="1" max="40" step="1"><span class="val" id="oLB"></span></div>
+        <div class="setrow"><label>걸린 시간 분자</label><input type="range" id="sNB" min="1" max="11" step="1"><span class="val" id="oNB"></span></div>
+        <div class="setrow"><label>걸린 시간 분모</label><input type="range" id="sDB" min="2" max="12" step="1"><span class="val" id="oDB"></span></div>
+      </div>
+    </div>
+    <div class="controls" style="margin-top:14px">
+      <button id="btnOrig" class="ghost">교과서 값으로 되돌리기</button>
+      <span class="hint">분자는 항상 분모보다 작게 맞춰집니다(1분보다 짧은 시간).</span>
+    </div>
+  </div>
+
+  <footer class="sig">Made by Sangtae Jeong<br>ver 260908_1123</footer>
+</div>
+
+<script>
+// ===== 핵심 계산 로직 시작 =====
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a; }
+
+// 걸린 시간 num/den 분에 L 리터를 받았을 때, 1분 동안 받는 양을 기약분수로 반환
+// L ÷ (num/den) = L × den / num
+function ratePerMinute(L, num, den) {
+  var n = L * den, d = num;
+  var g = gcd(n, d) || 1;
+  return { n: n / g, d: d / g, v: n / d };
+}
+// 한 칸(1/den 분)에 받는 양 = L ÷ num
+function unitAmount(L, num) {
+  var g = gcd(L, num) || 1;
+  return { n: L / g, d: num / g, v: L / num };
+}
+// 분자 분모 정합: 1 <= num <= den-1
+function clampFrac(num, den) {
+  if (den < 2) den = 2;
+  if (den > 12) den = 12;
+  if (num < 1) num = 1;
+  if (num > den - 1) num = den - 1;
+  return { num: num, den: den };
+}
+// 두 사람의 1분 양 비교: 1 = 앞이 많음, -1 = 뒤가 많음, 0 = 같음 (교차곱으로 정확 비교)
+function compareRate(ra, rb) {
+  var left = ra.n * rb.d, right = rb.n * ra.d;
+  if (left > right) return 1;
+  if (left < right) return -1;
+  return 0;
+}
+// ===== 핵심 계산 로직 끝 =====
+
+/* ── 표기 도우미 ── */
+function fracHTML(o) {
+  if (o.d === 1) return '' + o.n;
+  var w = Math.floor(o.n / o.d), r = o.n % o.d;
+  var core = '<span class="fr"><span class="n">' + r + '</span><span class="d">' + o.d + '</span></span>';
+  if (w > 0) return w + core;
+  return '<span class="fr"><span class="n">' + o.n + '</span><span class="d">' + o.d + '</span></span>';
+}
+function fracPlain(o) { return o.d === 1 ? ('' + o.n) : (o.n + '/' + o.d); }
+function num1(x) { return (Math.round(x * 10) / 10).toString(); }
+function num2(x) { return (Math.round(x * 100) / 100).toString(); }
+
+/* ── 상태 ── */
+var ORIG = { A: { L: 12, num: 2, den: 5 }, B: { L: 16, num: 4, den: 7 } };
+var P = { A: { L: 12, num: 2, den: 5 }, B: { L: 16, num: 4, den: 7 } };
+var t = 0, playing = false, speed = 1, raf = null, lastTs = 0;
+var step = 0, view = 'A';
+var flagged = { A: false, B: false };
+
+var $ = function (id) { return document.getElementById(id); };
+
+/* ── 눈금 & 물통 ── */
+function maxRate() {
+  var ra = ratePerMinute(P.A.L, P.A.num, P.A.den).v;
+  var rb = ratePerMinute(P.B.L, P.B.num, P.B.den).v;
+  return Math.max(ra, rb);
+}
+function scaleTop() {  // 물통 위쪽 여유 15%
+  return maxRate() * 1.15;
+}
+function drawTicks() {
+  var top = scaleTop();
+  var stepL = top <= 12 ? 1 : (top <= 35 ? 5 : 10);
+  ['A', 'B'].forEach(function (k) {
+    var html = '';
+    for (var v = stepL; v < top; v += stepL) {
+      var pct = v / top * 100;
+      html += '<i style="bottom:' + pct + '%"></i>';
+    }
+    $('tick' + k).innerHTML = html;
+  });
+}
+function placeGoals() {
+  var top = scaleTop();
+  ['A', 'B'].forEach(function (k) {
+    var r = ratePerMinute(P[k].L, P[k].num, P[k].den).v;
+    $('goal' + k).style.bottom = (r / top * 100) + '%';
+  });
+}
+
+/* ── 화면 갱신 ── */
+function renderStatic() {
+  ['A', 'B'].forEach(function (k) {
+    var p = P[k];
+    var who = (k === 'A') ? '샛별' : '하늘';
+    $('say' + k).innerHTML = p.L + ' L를 받는 데 ' + fracHTML({ n: p.num, d: p.den }) + ' 분 걸렸어.';
+    $('ph' + k).innerHTML = fracHTML({ n: p.num, d: p.den }) + ' 분 동안 ' + p.L + ' L';
+    // 시간 눈금 표시
+    var pct = p.num / p.den * 100;
+    $('mk' + k).style.left = pct + '%';
+    $('lb' + k).style.left = pct + '%';
+    $('lb' + k).innerHTML = who + ' ' + fracPlain({ n: p.num, d: p.den }) + '분';
+    $('lb' + k).style.top = (k === 'A' ? '1px' : '16px');
+    // 슬라이더 표시
+    $('oL' + k).textContent = p.L;
+    $('oN' + k).textContent = p.num;
+    $('oD' + k).textContent = p.den;
+    $('sL' + k).value = p.L;
+    $('sN' + k).value = p.num;
+    $('sD' + k).value = p.den;
+    $('sN' + k).max = p.den - 1;
+    var r = ratePerMinute(p.L, p.num, p.den);
+    $('r' + k).innerHTML = fracHTML(r);
+  });
+  drawTicks();
+  placeGoals();
+  renderPrinciple();
+  renderVerdict();
+}
+
+function renderTime() {
+  var top = scaleTop();
+  ['A', 'B'].forEach(function (k) {
+    var p = P[k];
+    var rate = ratePerMinute(p.L, p.num, p.den).v;
+    var got = rate * t;
+    var w = $('wat' + k);
+    w.style.height = Math.min(got / top * 100, 100) + '%';
+    w.style.opacity = (got > 0.001) ? 1 : 0;
+    $('t' + k).textContent = num2(t);
+    $('v' + k).textContent = num1(got);
+    $('fau' + k).className = 'faucet' + (playing ? ' flowing' : '');
+    if (!flagged[k] && t >= p.num / p.den - 1e-9) {
+      flagged[k] = true;
+      var who = (k === 'A') ? '샛별' : '하늘';
+      $('flag').style.visibility = 'visible';
+      $('flag').innerHTML = '⏱ ' + who + '이 ' + fracPlain({ n: p.num, d: p.den }) + '분 지점에서 <b>' + p.L + ' L</b> 받음';
+    }
+  });
+  $('tlFill').style.width = (t * 100) + '%';
+  $('cur').style.left = (t * 100) + '%';
+}
+
+/* ── 애니메이션 ── */
+function tick(ts) {
+  if (!playing) return;
+  if (!lastTs) lastTs = ts;
+  var dt = (ts - lastTs) / 1000; lastTs = ts;
+  t += dt / 9 * speed;          // 기본 9초에 1분
+  if (t >= 1) { t = 1; playing = false; $('btnPlay').textContent = '▶ 다시 받기'; }
+  renderTime();
+  if (playing) raf = requestAnimationFrame(tick); else { lastTs = 0; renderTime(); }
+}
+function play() {
+  if (t >= 1) { t = 0; flagged = { A: false, B: false }; $('flag').style.visibility = 'hidden'; }
+  playing = !playing;
+  $('btnPlay').textContent = playing ? '⏸ 잠시 멈춤' : '▶ 이어서 받기';
+  if (playing) { lastTs = 0; raf = requestAnimationFrame(tick); }
+  else { cancelAnimationFrame(raf); renderTime(); }
+}
+function resetTime() {
+  playing = false; cancelAnimationFrame(raf); t = 0; lastTs = 0;
+  flagged = { A: false, B: false }; $('flag').style.visibility = 'hidden';
+  $('btnPlay').textContent = '▶ 물 받기 시작';
+  renderTime();
+}
+
+/* ── 원리 패널 ── */
+function renderPrinciple() {
+  ['A', 'B'].forEach(function (k) { renderPrinOne(k); });
+  $('stepNo').textContent = step;
+  $('btnStep').disabled = (step >= 3);
+  $('btnStep').textContent = step >= 3 ? '완료' : (step === 0 ? '단계 시작 ▶' : '다음 단계 ▶');
+}
+function renderPrinOne(k) {
+  var p = P[k], who = (k === 'A') ? '샛별' : '하늘';
+  var u = unitAmount(p.L, p.num);
+  var r = ratePerMinute(p.L, p.num, p.den);
+  var cells = '';
+  for (var i = 1; i <= p.den; i++) {
+    var cls = 'cell';
+    var inTaken = (i <= p.num);
+    if (step >= 1 && inTaken) cls += ' on';
+    if (step >= 2 && i === 1) cls += ' unit';
+    if (step >= 3 && !inTaken) cls += ' extra';
+    var amt = '';
+    if (step >= 2 && i === 1) amt = fracHTML(u);
+    else if (step >= 3) amt = fracHTML(u);
+    var small = p.den > 8 ? ' style="font-size:11px"' : '';
+    cells += '<div class="' + cls + '"' + small + '>' +
+             (amt ? '<span class="amt">' + amt + ' L</span>' : '') +
+             '<span class="tm">' + fracPlain({ n: 1, d: p.den }) + '분</span></div>';
+  }
+  $('bar' + k).innerHTML = cells;
+
+  // 중괄호(구간 표시)
+  var br = '';
+  if (step >= 1) {
+    var w = p.num / p.den * 100;
+    br += '<div class="seg" style="left:0;width:' + w + '%"></div>' +
+          '<div class="segtxt" style="left:' + (w / 2) + '%">' + fracPlain({ n: p.num, d: p.den }) + '분 = ' + p.L + ' L</div>';
+  }
+  if (step >= 3) {
+    br += '<div class="seg" style="left:0;width:100%;border-color:#1c8b3f;top:14px;height:8px"></div>' +
+          '<div class="segtxt" style="left:50%;top:22px;color:#1c8b3f">1분 = ' + fracPlain(r) + ' L</div>';
+  }
+  $('br' + k).innerHTML = br;
+  $('br' + k).style.height = (step >= 3 ? 52 : 26) + 'px';
+
+  // 설명 문장
+  var txt = '';
+  if (step === 0) txt = '아래 <span class="k">단계 시작</span> 단추를 눌러 1분 동안의 양을 구하는 과정을 하나씩 확인해 보세요.';
+  else if (step === 1) txt = '1분을 똑같이 <span class="k">' + p.den + '칸</span>으로 나누면 한 칸은 ' + fracHTML({ n: 1, d: p.den }) + '분입니다. ' +
+      who + '이 물을 받은 시간 ' + fracHTML({ n: p.num, d: p.den }) + '분은 <span class="k">' + p.num + '칸</span>이고, 그 ' + p.num + '칸 동안 ' + p.L + ' L를 받았습니다.';
+  else if (step === 2) txt = p.num + '칸에 ' + p.L + ' L이므로 <span class="k">한 칸(' + fracHTML({ n: 1, d: p.den }) + '분)</span>에는 ' +
+      p.L + ' ÷ ' + p.num + ' = <span class="k">' + fracHTML(u) + ' L</span>씩 받습니다.';
+  else txt = '1분은 ' + fracHTML({ n: 1, d: p.den }) + '분이 <span class="k">' + p.den + '개</span>이므로, ' +
+      fracHTML(u) + ' × ' + p.den + ' = <span class="k">' + fracHTML(r) + ' L</span>. 곧 1분 동안 <span class="k">' + num1(r.v) + ' L</span>를 받습니다.';
+  $('st' + k).innerHTML = txt;
+
+  // 식 전개
+  var eq = '';
+  eq += '<div class="eqline ' + (step >= 1 ? 'show' : '') + '">' +
+        p.L + ' ÷ ' + fracHTML({ n: p.num, d: p.den }) + ' = ?</div>';
+  eq += '<div class="eqline ' + (step >= 2 ? 'show' : '') + '">' +
+        p.L + ' ÷ ' + fracHTML({ n: p.num, d: p.den }) + ' = ' + p.L + ' ÷ ' + p.num + ' × ' + p.den + '</div>';
+  eq += '<div class="eqline ' + (step >= 3 ? 'show' : '') + '">' +
+        p.L + ' ÷ ' + fracHTML({ n: p.num, d: p.den }) + ' = ' + p.L + ' × ' + fracHTML({ n: p.den, d: p.num }) +
+        ' = <b>' + fracHTML(r) + '</b> (L)</div>';
+  $('eq' + k).innerHTML = eq;
+}
+
+/* ── 결론 ── */
+function renderVerdict() {
+  var ra = ratePerMinute(P.A.L, P.A.num, P.A.den);
+  var rb = ratePerMinute(P.B.L, P.B.num, P.B.den);
+  var c = compareRate(ra, rb);
+  var el = $('verdict');
+  var line = '1분 동안 &nbsp;샛별 <b>' + fracHTML(ra) + ' L</b> &nbsp;/&nbsp; 하늘 <b>' + fracHTML(rb) + ' L</b>';
+  el.classList.toggle('tie', c === 0);
+  $('tapA').classList.toggle('win', c === 1);
+  $('tapB').classList.toggle('win', c === -1);
+  if (c === 0) el.innerHTML = '두 사람이 받은 물의 양이 <b>같습니다</b>.<small>' + line + '</small>';
+  else {
+    var w = (c === 1) ? '샛별' : '하늘';
+    var big = (c === 1) ? ra : rb, small = (c === 1) ? rb : ra;
+    var diffN = big.n * small.d - small.n * big.d, diffD = big.d * small.d;
+    var g = gcd(diffN, diffD) || 1;
+    el.innerHTML = '1분 동안이면 <b>' + w + '</b>이 받은 물의 양이 더 많습니다.' +
+      '<small>' + line + ' &nbsp;→&nbsp; 차이 ' + fracHTML({ n: diffN / g, d: diffD / g }) + ' L</small>';
+  }
+}
+
+/* ── 이벤트 ── */
+$('btnPlay').addEventListener('click', play);
+$('btnReset').addEventListener('click', resetTime);
+$('spd').addEventListener('change', function (e) { speed = parseFloat(e.target.value); });
+
+$('btnStep').addEventListener('click', function () { if (step < 3) { step++; renderPrinciple(); } });
+$('btnStepReset').addEventListener('click', function () { step = 0; renderPrinciple(); });
+
+function setView(v) {
+  view = v;
+  $('prinA').style.display = (v === 'B') ? 'none' : '';
+  $('prinB').style.display = (v === 'A') ? 'none' : '';
+  $('tabA').className = (v === 'A') ? '' : 'off';
+  $('tabB').className = (v === 'B') ? '' : 'off';
+  $('tabAll').className = (v === 'all') ? '' : 'off';
+}
+$('tabA').addEventListener('click', function () { setView('A'); });
+$('tabB').addEventListener('click', function () { setView('B'); });
+$('tabAll').addEventListener('click', function () { setView('all'); });
+
+['A', 'B'].forEach(function (k) {
+  ['L', 'N', 'D'].forEach(function (f) {
+    $('s' + f + k).addEventListener('input', function () {
+      var L = parseInt($('sL' + k).value, 10);
+      var num = parseInt($('sN' + k).value, 10);
+      var den = parseInt($('sD' + k).value, 10);
+      var cf = clampFrac(num, den);
+      P[k] = { L: L, num: cf.num, den: cf.den };
+      resetTime();
+      renderStatic();
+    });
+  });
+});
+$('btnOrig').addEventListener('click', function () {
+  P = { A: { L: ORIG.A.L, num: ORIG.A.num, den: ORIG.A.den },
+        B: { L: ORIG.B.L, num: ORIG.B.num, den: ORIG.B.den } };
+  step = 0; resetTime(); renderStatic();
+});
+
+/* ── 시작 ── */
+setView('A');
+renderStatic();
+renderTime();
+</script>
+</body>
+</html>
