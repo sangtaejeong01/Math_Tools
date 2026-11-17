@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분수의 나눗셈 · 철근 1 m의 무게</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 60px;
+    font-family: "맑은 고딕", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: #eef4f8; color: #1c2b36; font-size: 18px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  /* ── 머리말 ── */
+  header {
+    background: linear-gradient(135deg, #1f7a8c, #2ba3a0);
+    color: #fff; padding: 18px 0 22px; margin-bottom: 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  }
+  header .wrap { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .badge {
+    background: #ffd166; color: #6b4a00; font-weight: 800;
+    border-radius: 999px; padding: 7px 16px; font-size: 16px; white-space: nowrap;
+  }
+  h1 { font-size: 24px; margin: 4px 0 6px; }
+  .quest { font-size: 17px; line-height: 1.6; opacity: .95; max-width: 800px; }
+  .sig-head { margin-left: auto; text-align: right; font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.5; }
+
+  /* ── 진행 표시 ── */
+  .progress { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .pdot {
+    flex: 1 1 0; min-width: 120px; background: #dde8f0; color: #7d8f9d;
+    border-radius: 10px; padding: 9px 8px; text-align: center;
+    font-size: 14.5px; font-weight: 700; line-height: 1.35;
+  }
+  .pdot b { display: block; font-size: 12px; opacity: .8; font-weight: 700; }
+  .pdot.on { background: #1f7a8c; color: #fff; }
+  .pdot.done { background: #59b36b; color: #fff; }
+
+  /* ── 카드 공통 ── */
+  .card {
+    background: #fff; border-radius: 14px; padding: 20px 22px; margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(31,60,80,.10);
+  }
+  .card > h2 {
+    font-size: 20px; margin: 0 0 16px; padding-left: 11px;
+    border-left: 6px solid #1f7a8c; line-height: 1.35;
+  }
+  .hint { font-size: 15px; color: #5d7386; line-height: 1.7; }
+  .step.locked { opacity: .42; pointer-events: none; filter: grayscale(.35); }
+  .step.locked::after {
+    content: "앞 단계를 먼저 해결하세요"; display: block; margin-top: 8px;
+    font-size: 14px; color: #8b9aa5; font-weight: 700;
+  }
+
+  /* ── 문제 카드 ── */
+  .problem { background: #fffdf5; border: 2px solid #ffd88a; }
+  .problem .qtext { font-size: 23px; line-height: 2.0; font-weight: 600; }
+  .rodpic {
+    display: inline-block; vertical-align: middle; margin-left: 12px;
+    width: 116px; height: 44px; position: relative;
+  }
+  .rodpic i {
+    position: absolute; left: 0; right: 0; height: 11px; border-radius: 6px;
+    background: linear-gradient(#c9d2d8, #8b97a1 45%, #6e7a84);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .rodpic i:nth-child(1) { top: 3px; }
+  .rodpic i:nth-child(2) { top: 16px; left: 8px; right: 8px; }
+  .rodpic i:nth-child(3) { top: 29px; left: 3px; right: 4px; }
+
+  /* ── 분수 표시 ── */
+  .frac {
+    display: inline-flex; flex-direction: column; align-items: center;
+    vertical-align: middle; margin: 0 5px; line-height: 1.15; font-weight: 700;
+  }
+  .frac > span:first-child { border-bottom: 2.5px solid currentColor; padding: 0 6px 1px; }
+  .frac > span:last-child { padding: 1px 6px 0; }
+  .big .frac { font-size: 26px; }
+  .eq { font-size: 26px; font-weight: 700; line-height: 2.1; }
+  .eq .op { margin: 0 8px; color: #1f7a8c; }
+  .mark { background: #fff2b8; border-radius: 5px; padding: 0 4px; }
+  .red { color: #d42424; }
+  .blue { color: #1a4fd9; }
+
+  /* ── 선택 버튼 ── */
+  .choices { display: flex; gap: 12px; flex-wrap: wrap; margin: 6px 0 4px; }
+  .cbtn {
+    font-family: inherit; font-size: 19px; font-weight: 700; cursor: pointer;
+    background: #eef4f8; color: #33566b; border: 2.5px solid #cfdde7;
+    border-radius: 11px; padding: 12px 24px; line-height: 1.5;
+  }
+  .cbtn:hover { border-color: #1f7a8c; }
+  .cbtn.ok { background: #59b36b; border-color: #59b36b; color: #fff; }
+  .cbtn.no { background: #f3d4d4; border-color: #d98b8b; color: #8b3030; }
+  .qline { font-size: 19px; line-height: 2.0; margin: 4px 0 2px; }
+
+  /* ── 띠 모델 ── */
+  .tape { margin: 14px 0 10px; }
+  .tape-top {
+    display: flex; font-size: 14px; font-weight: 700; color: #476072;
+    margin-bottom: 5px;
+  }
+  .tape-top .t9 { flex: 0 0 90%; text-align: center; color: #b3541e; }
+  .tape-top .t1 { flex: 0 0 10%; text-align: center; color: #90a0ad; }
+  .bar { display: flex; height: 62px; border: 3px solid #6b7c8a; border-radius: 8px; overflow: hidden; }
+  .cell { flex: 0 0 10%; position: relative; border-right: 2px solid transparent; transition: border-color .3s; }
+  .cell:last-child { border-right: none; }
+  .cell.rod { background: linear-gradient(#c9d2d8, #8b97a1 45%, #6e7a84); }
+  .cell.gap { background: repeating-linear-gradient(45deg, #f4f7f9 0 8px, #e6edf2 8px 16px); }
+  .bar.split .cell.rod { border-right-color: #fff; }
+  .cell .lab {
+    position: absolute; left: 0; right: 0; bottom: 3px; text-align: center;
+    font-size: 13px; font-weight: 800; color: #fff; opacity: 0; transition: opacity .3s;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .bar.split .cell .lab { opacity: 1; }
+  .ruler { display: flex; margin-top: 5px; font-size: 13px; color: #5d7386; font-weight: 700; }
+  .ruler span { flex: 0 0 10%; text-align: center; border-left: 1px solid #c3d0da; }
+  .ruler span:last-child { border-right: 1px solid #c3d0da; }
+  .tape-note { font-size: 15px; color: #5d7386; margin-top: 8px; line-height: 1.7; }
+
+  /* ── 입력 ── */
+  .answer { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 14px 0 6px; }
+  .alabel { font-size: 19px; font-weight: 700; }
+  .finput {
+    display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle;
+    background: #f7fbfd; border: 2.5px solid #bcd0dd; border-radius: 10px; padding: 7px 9px;
+  }
+  .finput input {
+    width: 74px; height: 40px; text-align: center; font-size: 24px; font-weight: 800;
+    font-family: inherit; border: 1.5px solid #d6e2ea; border-radius: 6px;
+    background: #fff; color: #1c2b36;
+  }
+  .finput .fline { width: 78px; height: 3px; background: #33566b; margin: 5px 0; border-radius: 2px; }
+  .unit { font-size: 21px; font-weight: 700; }
+
+  button {
+    font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
+    border: none; border-radius: 9px; padding: 11px 20px; background: #1f7a8c; color: #fff;
+    transition: filter .15s, transform .05s;
+  }
+  button:hover { filter: brightness(1.1); }
+  button:active { transform: translateY(1px); }
+  button.ghost { background: #e4edf3; color: #33566b; }
+  button.warm { background: #ef7c1b; }
+  button.tiny { font-size: 14.5px; padding: 8px 14px; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+
+  .msg { font-size: 17px; font-weight: 700; line-height: 1.8; margin-top: 10px; min-height: 26px; }
+  .msg.good { color: #2f8f47; }
+  .msg.bad { color: #c23c3c; }
+  .msg.tip { color: #b3541e; }
+
+  .reveal { display: none; margin-top: 14px; padding: 14px 16px; background: #f2f9f4;
+            border: 2px solid #bfe3c8; border-radius: 11px; }
+  .reveal.show { display: block; }
+  .reveal h3 { margin: 0 0 8px; font-size: 17px; color: #2f6b3f; }
+
+  .why { background: #f4f8fb; border: 2px dashed #c3d6e3; border-radius: 11px; padding: 14px 16px; margin-top: 14px; }
+  .why h3 { margin: 0 0 8px; font-size: 17px; color: #1f5e70; }
+
+  footer { text-align: center; font-size: 12px; color: #98a7b3; line-height: 1.6; margin-top: 26px; }
+
+  @media (max-width: 820px) {
+    body { font-size: 16px; }
+    .problem .qtext { font-size: 19px; }
+    .big .frac, .eq { font-size: 21px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="badge">확인 2</div>
+    <div>
+      <h1>철근 1 m의 무게 구하기</h1>
+      <div class="quest">(분수) ÷ (분수) &nbsp;·&nbsp; 단위량 구하기 &nbsp;—&nbsp; 다섯 단계로 스스로 풀어 봅시다.</div>
+    </div>
+    <div class="sig-head">Made by Sangtae Jeong<br>ver 260911_1040</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 진행 표시 -->
+  <div class="progress" id="progress">
+    <div class="pdot on" data-k="1"><b>1단계</b>어림하기</div>
+    <div class="pdot" data-k="2"><b>2단계</b>1칸의 무게</div>
+    <div class="pdot" data-k="3"><b>3단계</b>1 m의 무게</div>
+    <div class="pdot" data-k="4"><b>4단계</b>나눗셈식으로</div>
+    <div class="pdot" data-k="5"><b>5단계</b>검산하기</div>
+  </div>
+
+  <!-- 문제 -->
+  <div class="card problem">
+    <div class="qtext big">
+      굵기가 일정하고 무게가
+      <span class="frac red"><span>5</span><span>8</span></span> kg인 철근
+      <span class="frac blue"><span>9</span><span>10</span></span> m가 있습니다.
+      <span class="rodpic"><i></i><i></i><i></i></span><br>
+      철근 <b>1 m</b>의 무게는 몇 kg인가요?
+    </div>
+  </div>
+
+  <!-- 1단계 -->
+  <div class="card step" id="step1">
+    <h2>1단계 · 답을 어림해 봅시다</h2>
+    <div class="qline">
+      ① 구하려는 <b>1 m</b>는 주어진 <span class="frac blue"><span>9</span><span>10</span></span> m보다
+    </div>
+    <div class="choices" id="c1">
+      <button class="cbtn" data-v="1">깁니다</button>
+      <button class="cbtn" data-v="0">짧습니다</button>
+    </div>
+    <div class="qline" id="q1b" style="display:none">
+      ② 그렇다면 1 m의 무게는 <span class="frac red"><span>5</span><span>8</span></span> kg보다
+    </div>
+    <div class="choices" id="c2" style="display:none">
+      <button class="cbtn" data-v="1">무겁습니다</button>
+      <button class="cbtn" data-v="0">가볍습니다</button>
+    </div>
+    <div class="msg" id="m1"></div>
+    <div class="reveal" id="r1">
+      <h3>어림 완료</h3>
+      <div class="hint">1 m &gt; <span class="frac"><span>9</span><span>10</span></span> m 이므로, 답은
+      <span class="frac"><span>5</span><span>8</span></span> kg보다 <b>커야</b> 합니다.
+      마지막 5단계에서 이 어림과 맞는지 확인합니다.</div>
+    </div>
+  </div>
+
+  <!-- 2단계 -->
+  <div class="card step locked" id="step2">
+    <h2>2단계 · <span class="frac"><span>1</span><span>10</span></span> m 한 칸의 무게는?</h2>
+    <div class="hint">1 m를 10칸으로 똑같이 나누면 한 칸은 <span class="frac"><span>1</span><span>10</span></span> m입니다.
+      철근은 그중 <b>9칸</b>을 차지하고, 그 9칸 전체의 무게가 <span class="frac red"><span>5</span><span>8</span></span> kg입니다.</div>
+
+    <div class="tape">
+      <div class="tape-top">
+        <div class="t9">◀ 철근 <span class="frac"><span>9</span><span>10</span></span> m = <span class="frac"><span>5</span><span>8</span></span> kg ▶</div>
+        <div class="t1">◀ 빈 곳 ▶</div>
+      </div>
+      <div class="bar" id="bar">
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell rod"><span class="lab">?</span></div>
+        <div class="cell gap"></div>
+      </div>
+      <div class="ruler">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+        <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+      </div>
+      <div class="tape-note">눈금 한 칸 = <span class="frac"><span>1</span><span>10</span></span> m &nbsp;/&nbsp; 전체 10칸 = 1 m</div>
+    </div>
+
+    <div class="btnrow">
+      <button class="ghost tiny" id="btnSplit">9칸으로 똑같이 나누어 보기</button>
+    </div>
+
+    <div class="answer">
+      <span class="alabel">한 칸(<span class="frac"><span>1</span><span>10</span></span> m)의 무게 =
+        <span class="frac red"><span>5</span><span>8</span></span> ÷ 9 =</span>
+      <span class="finput"><input id="n2" type="text" inputmode="numeric" autocomplete="off"><span class="fline"></span><input id="d2" type="text" inputmode="numeric" autocomplete="off"></span>
+      <span class="unit">kg</span>
+      <button id="chk2">확인</button>
+      <button class="ghost tiny" id="hint2">힌트</button>
+    </div>
+    <div class="msg" id="m2"></div>
+    <div class="reveal" id="r2">
+      <h3>2단계 정답</h3>
+      <div class="eq"><span class="frac"><span>5</span><span>8</span></span><span class="op">÷</span>9
+        <span class="op">=</span><span class="frac"><span>5</span><span>8 × 9</span></span>
+        <span class="op">=</span><span class="frac mark"><span>5</span><span>72</span></span> (kg)</div>
+      <div class="hint">9칸으로 똑같이 나누므로 분모에 9를 곱합니다.</div>
+    </div>
+  </div>
+
+  <!-- 3단계 -->
+  <div class="card step locked" id="step3">
+    <h2>3단계 · 1 m(10칸)의 무게는?</h2>
+    <div class="hint">한 칸이 <span class="frac"><span>5</span><span>72</span></span> kg이고, 1 m는 그런 칸이 <b>10칸</b>입니다.</div>
+    <div class="answer">
+      <span class="alabel">1 m의 무게 = <span class="frac"><span>5</span><span>72</span></span> × 10 =</span>
+      <span class="finput"><input id="n3" type="text" inputmode="numeric" autocomplete="off"><span class="fline"></span><input id="d3" type="text" inputmode="numeric" autocomplete="off"></span>
+      <span class="unit">kg</span>
+      <button id="chk3">확인</button>
+      <button class="ghost tiny" id="hint3">힌트</button>
+    </div>
+    <div class="msg" id="m3"></div>
+    <div class="reveal" id="r3">
+      <h3>3단계 정답</h3>
+      <div class="eq"><span class="frac"><span>5</span><span>72</span></span><span class="op">×</span>10
+        <span class="op">=</span><span class="frac"><span>50</span><span>72</span></span>
+        <span class="op">=</span><span class="frac mark"><span>25</span><span>36</span></span> (kg)</div>
+      <div class="hint">50과 72를 2로 약분하면 <span class="frac"><span>25</span><span>36</span></span>입니다.</div>
+    </div>
+  </div>
+
+  <!-- 4단계 -->
+  <div class="card step locked" id="step4">
+    <h2>4단계 · 한 줄의 나눗셈식으로 나타내기</h2>
+    <div class="hint">2·3단계에서 한 일은 <b>9로 나누고 10을 곱한 것</b>이었습니다.
+      이것을 한 번에 쓰면 <span class="frac"><span>9</span><span>10</span></span>으로 나누는 것과 같습니다.</div>
+    <div class="eq" style="margin:10px 0 4px">
+      (무게) ÷ (길이) <span class="op">=</span>
+      <span class="frac red"><span>5</span><span>8</span></span><span class="op">÷</span><span class="frac blue"><span>9</span><span>10</span></span>
+      <span class="op">=</span>
+      <span class="frac red"><span>5</span><span>8</span></span><span class="op">×</span>
+      <span class="finput" style="padding:4px 7px"><input id="n4" type="text" inputmode="numeric" autocomplete="off" style="width:60px;height:34px;font-size:20px"><span class="fline" style="width:64px"></span><input id="d4" type="text" inputmode="numeric" autocomplete="off" style="width:60px;height:34px;font-size:20px"></span>
+    </div>
+    <div class="btnrow">
+      <button id="chk4">확인</button>
+      <button class="ghost tiny" id="hint4">힌트</button>
+    </div>
+    <div class="msg" id="m4"></div>
+    <div class="reveal" id="r4">
+      <h3>4단계 정답</h3>
+      <div class="eq"><span class="frac"><span>5</span><span>8</span></span><span class="op">÷</span><span class="frac"><span>9</span><span>10</span></span>
+        <span class="op">=</span><span class="frac"><span>5</span><span>8</span></span><span class="op">×</span><span class="frac mark"><span>10</span><span>9</span></span>
+        <span class="op">=</span><span class="frac"><span>50</span><span>72</span></span>
+        <span class="op">=</span><span class="frac mark"><span>25</span><span>36</span></span> (kg)</div>
+      <div class="why">
+        <h3>왜 뒤집어 곱할까?</h3>
+        <div class="hint">
+          ÷ <span class="frac"><span>9</span><span>10</span></span> 는 &nbsp;<b>÷ 9</b> 하고 <b>× 10</b> 하는 것과 같습니다.<br>
+          &nbsp;&nbsp;· ÷ 9 &nbsp;→ 2단계에서 한 칸의 무게를 구한 일<br>
+          &nbsp;&nbsp;· × 10 &nbsp;→ 3단계에서 10칸을 모은 일<br>
+          두 가지를 한 번에 쓰면 × <span class="frac"><span>10</span><span>9</span></span> 가 됩니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5단계 -->
+  <div class="card step locked" id="step5">
+    <h2>5단계 · 검산하고 어림과 맞추어 보기</h2>
+    <div class="hint">구한 답이 맞다면, 1 m의 무게에 <span class="frac"><span>9</span><span>10</span></span>을 곱했을 때
+      처음에 주어진 <span class="frac red"><span>5</span><span>8</span></span> kg이 나와야 합니다.</div>
+    <div class="btnrow">
+      <button class="warm" id="chk5">검산하기</button>
+      <button class="ghost tiny" id="reset">처음부터 다시</button>
+    </div>
+    <div class="msg" id="m5"></div>
+    <div class="reveal" id="r5">
+      <h3>검산 결과</h3>
+      <div class="eq"><span class="frac"><span>25</span><span>36</span></span><span class="op">×</span><span class="frac"><span>9</span><span>10</span></span>
+        <span class="op">=</span><span class="frac"><span>225</span><span>360</span></span>
+        <span class="op">=</span><span class="frac mark"><span>5</span><span>8</span></span> &nbsp;✔</div>
+      <div class="hint" style="margin-top:10px">
+        · 어림과 비교: <span class="frac"><span>25</span><span>36</span></span> ≈ 0.69 kg 은
+        <span class="frac"><span>5</span><span>8</span></span> = 0.625 kg 보다 <b>큽니다</b>.
+        1단계에서 어림한 것과 맞습니다.<br>
+        · <b>답: <span class="frac"><span>25</span><span>36</span></span> kg</b>
+      </div>
+    </div>
+  </div>
+
+  <footer>Made by Sangtae Jeong<br>ver 260911_1040</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* 최대공약수 */
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a; }
+
+  /* 입력칸에서 분수 읽기 (0보다 큰 자연수만 허용) */
+  function readFrac(nId, dId) {
+    var ns = $(nId).value.trim(), ds = $(dId).value.trim();
+    if (!/^\d+$/.test(ns) || !/^\d+$/.test(ds)) return null;
+    var n = parseInt(ns, 10), d = parseInt(ds, 10);
+    if (n <= 0 || d <= 0) return null;
+    return { n: n, d: d };
+  }
+
+  /* 두 분수가 같은 값인지 */
+  function sameValue(f, tn, td) { return f.n * td === tn * f.d; }
+
+  /* 기약분수인지 */
+  function reduced(f) { return gcd(f.n, f.d) === 1; }
+
+  /* 안내 문구 출력 */
+  function say(id, text, kind) {
+    var el = $(id);
+    el.textContent = text;
+    el.className = "msg " + (kind || "");
+  }
+
+  /* 단계 잠금 해제 및 진행 표시 갱신 */
+  function unlock(k) {
+    var s = $("step" + k);
+    if (s) s.classList.remove("locked");
+    var dots = document.querySelectorAll("#progress .pdot");
+    for (var i = 0; i < dots.length; i++) {
+      var kk = parseInt(dots[i].getAttribute("data-k"), 10);
+      dots[i].classList.remove("on", "done");
+      if (kk < k) dots[i].classList.add("done");
+      else if (kk === k) dots[i].classList.add("on");
+    }
+    if (s) setTimeout(function () { s.scrollIntoView({ behavior: "smooth", block: "start" }); }, 260);
+  }
+
+  /* 한 단계를 완료 표시 */
+  function markDone(k) {
+    var dot = document.querySelector('#progress .pdot[data-k="' + k + '"]');
+    if (dot) { dot.classList.remove("on"); dot.classList.add("done"); }
+  }
+
+  /* ── 1단계: 어림하기 ── */
+  function pick(groupId, correctValue, onRight, wrongMsg, rightMsg) {
+    var g = $(groupId);
+    g.addEventListener("click", function (ev) {
+      var b = ev.target.closest(".cbtn");
+      if (!b) return;
+      var v = parseInt(b.getAttribute("data-v"), 10);
+      var btns = g.querySelectorAll(".cbtn");
+      for (var i = 0; i < btns.length; i++) btns[i].classList.remove("ok", "no");
+      if (v === correctValue) {
+        b.classList.add("ok");
+        say("m1", rightMsg, "good");
+        onRight();
+      } else {
+        b.classList.add("no");
+        say("m1", wrongMsg, "bad");
+      }
+    });
+  }
+
+  pick("c1", 1, function () {
+    $("q1b").style.display = "";
+    $("c2").style.display = "";
+  }, "다시 생각해 봅시다. 1 = 10/10 이고, 9/10 은 그보다 한 칸 모자랍니다.",
+     "맞습니다. 1 m 는 9/10 m 보다 깁니다. 이어서 ②를 풀어 보세요.");
+
+  pick("c2", 1, function () {
+    $("r1").classList.add("show");
+    markDone(1);
+    unlock(2);
+  }, "다시 생각해 봅시다. 같은 철근이라면 길이가 길수록 무게는 어떻게 될까요?",
+     "좋습니다. 답은 5/8 kg 보다 커야 합니다.");
+
+  /* ── 2단계: 한 칸의 무게 ── */
+  /* 띠 모델의 칸 라벨을 한꺼번에 바꾼다 */
+  function setCellLabels(text) {
+    var labs = document.querySelectorAll("#bar .lab");
+    for (var i = 0; i < labs.length; i++) labs[i].textContent = text;
+  }
+
+  $("btnSplit").addEventListener("click", function () {
+    $("bar").classList.toggle("split");
+  });
+
+  $("hint2").addEventListener("click", function () {
+    say("m2", "힌트: 9칸으로 똑같이 나누므로 5/8 의 분모 8에 9를 곱합니다.", "tip");
+  });
+
+  function check2() {
+    var f = readFrac("n2", "d2");
+    if (!f) { say("m2", "분자와 분모에 0보다 큰 자연수를 써 넣으세요.", "bad"); return; }
+    if (!sameValue(f, 5, 72)) {
+      say("m2", "아직 아닙니다. 5/8 을 9칸으로 똑같이 나누어 보세요.", "bad");
+      return;
+    }
+    if (!reduced(f)) {
+      say("m2", "값은 맞습니다. 약분하여 기약분수로 다시 써 보세요.", "tip");
+      return;
+    }
+    say("m2", "정답입니다. 한 칸의 무게는 5/72 kg 입니다.", "good");
+    $("r2").classList.add("show");
+    $("bar").classList.add("split");
+    setCellLabels("5/72");
+    markDone(2);
+    unlock(3);
+  }
+  $("chk2").addEventListener("click", check2);
+  $("n2").addEventListener("keydown", function (e) { if (e.key === "Enter") check2(); });
+  $("d2").addEventListener("keydown", function (e) { if (e.key === "Enter") check2(); });
+
+  /* ── 3단계: 1 m 의 무게 ── */
+  $("hint3").addEventListener("click", function () {
+    say("m3", "힌트: 5/72 를 10번 더하면 50/72 입니다. 약분까지 해 보세요.", "tip");
+  });
+
+  function check3() {
+    var f = readFrac("n3", "d3");
+    if (!f) { say("m3", "분자와 분모에 0보다 큰 자연수를 써 넣으세요.", "bad"); return; }
+    if (!sameValue(f, 25, 36)) {
+      say("m3", "아직 아닙니다. 5/72 에 10을 곱해 보세요.", "bad");
+      return;
+    }
+    if (!reduced(f)) {
+      say("m3", "값은 맞습니다. 50/72 를 2로 약분하면 어떻게 될까요?", "tip");
+      return;
+    }
+    say("m3", "정답입니다. 1 m 의 무게는 25/36 kg 입니다.", "good");
+    $("r3").classList.add("show");
+    markDone(3);
+    unlock(4);
+  }
+  $("chk3").addEventListener("click", check3);
+  $("n3").addEventListener("keydown", function (e) { if (e.key === "Enter") check3(); });
+  $("d3").addEventListener("keydown", function (e) { if (e.key === "Enter") check3(); });
+
+  /* ── 4단계: 나눗셈식 ── */
+  $("hint4").addEventListener("click", function () {
+    say("m4", "힌트: ÷ 9/10 은 9로 나누고 10을 곱하는 것, 곧 × 10/9 와 같습니다.", "tip");
+  });
+
+  function check4() {
+    var f = readFrac("n4", "d4");
+    if (!f) { say("m4", "분자와 분모에 0보다 큰 자연수를 써 넣으세요.", "bad"); return; }
+    if (f.n === 9 && f.d === 10) {
+      say("m4", "그대로 두면 곱셈이 아니라 나눗셈이 됩니다. 나누는 수를 뒤집어 보세요.", "bad");
+      return;
+    }
+    if (!(f.n === 10 && f.d === 9)) {
+      say("m4", "아직 아닙니다. 9/10 의 분자와 분모를 바꾸어 써 보세요.", "bad");
+      return;
+    }
+    say("m4", "정답입니다. 5/8 ÷ 9/10 = 5/8 × 10/9 = 25/36 입니다.", "good");
+    $("r4").classList.add("show");
+    markDone(4);
+    unlock(5);
+  }
+  $("chk4").addEventListener("click", check4);
+  $("n4").addEventListener("keydown", function (e) { if (e.key === "Enter") check4(); });
+  $("d4").addEventListener("keydown", function (e) { if (e.key === "Enter") check4(); });
+
+  /* ── 5단계: 검산 ── */
+  $("chk5").addEventListener("click", function () {
+    say("m5", "25/36 × 9/10 = 225/360 = 5/8 → 처음 조건과 같습니다. 답이 맞습니다.", "good");
+    $("r5").classList.add("show");
+    markDone(5);
+    setTimeout(function () { $("r5").scrollIntoView({ behavior: "smooth", block: "center" }); }, 120);
+  });
+
+  /* ── 처음부터 다시 ── */
+  $("reset").addEventListener("click", function () {
+    var ids = ["n2", "d2", "n3", "d3", "n4", "d4"];
+    for (var i = 0; i < ids.length; i++) $(ids[i]).value = "";
+    for (var k = 1; k <= 5; k++) {
+      say("m" + k, "", "");
+      $("r" + k).classList.remove("show");
+      if (k >= 2) $("step" + k).classList.add("locked");
+    }
+    var btns = document.querySelectorAll(".cbtn");
+    for (var j = 0; j < btns.length; j++) btns[j].classList.remove("ok", "no");
+    $("q1b").style.display = "none";
+    $("c2").style.display = "none";
+    $("bar").classList.remove("split");
+    setCellLabels("?");
+    var dots = document.querySelectorAll("#progress .pdot");
+    for (var m = 0; m < dots.length; m++) {
+      dots[m].classList.remove("on", "done");
+      if (dots[m].getAttribute("data-k") === "1") dots[m].classList.add("on");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+</body>
+</html>

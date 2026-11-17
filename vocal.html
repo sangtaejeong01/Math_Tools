@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발성연습 · 도레미파솔라시도 2옥타브 올라가기</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 40px;
+    font-family: "맑은 고딕", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: #f3f1fa; color: #241c33;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  header {
+    background: linear-gradient(135deg, #5b3fa8, #8a5fd0);
+    color: #fff; padding: 18px 0 22px; margin-bottom: 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  }
+  header .wrap { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .badge {
+    background: #ffd166; color: #6b4a00; font-weight: 800;
+    border-radius: 999px; padding: 6px 14px; font-size: 15px; white-space: nowrap;
+  }
+  h1 { font-size: 21px; margin: 4px 0 6px; }
+  .quest { font-size: 16px; line-height: 1.6; opacity: .95; max-width: 820px; }
+  .sig-head { margin-left: auto; text-align: right; font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.5; }
+
+  .card {
+    background: #fff; border-radius: 14px; padding: 18px 20px; margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(40,25,70,.10);
+  }
+  .card > h2 {
+    font-size: 17px; margin: 0 0 14px; padding-left: 10px;
+    border-left: 5px solid #5b3fa8; line-height: 1.3;
+  }
+  .hint { font-size: 13.5px; color: #6a6080; line-height: 1.7; }
+
+  /* ── 조작 ── */
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  button {
+    font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+    border: none; border-radius: 9px; padding: 10px 18px; background: #5b3fa8; color: #fff;
+    transition: filter .15s, transform .05s;
+  }
+  button:hover { filter: brightness(1.12); }
+  button:active { transform: translateY(1px); }
+  button.ghost { background: #ebe6f7; color: #4a3a72; }
+  button.big { font-size: 17px; padding: 13px 26px; background: #45268f; }
+  button.stop { background: #b3341e; }
+  button:disabled { background: #d5d0e2; color: #948db0; cursor: default; }
+  .chip {
+    background: #f1eefa; border-radius: 8px; padding: 6px 11px; font-size: 14px;
+    border: 1px solid #ddd5f0; line-height: 2.0; white-space: nowrap;
+  }
+  .chip b { font-size: 16px; color: #45268f; }
+  select, input[type=range] { font-family: inherit; font-size: 14px; accent-color: #5b3fa8; }
+  select { border: 1px solid #ddd5f0; border-radius: 7px; padding: 5px 7px; background: #fff; }
+  .setrow { display: flex; align-items: center; gap: 9px; font-size: 14px; flex-wrap: wrap; }
+  .setrow > label { min-width: 104px; color: #56496f; font-weight: 700; }
+  .setrow input[type=range] { flex: 1 1 150px; min-width: 130px; max-width: 260px; }
+  .val { min-width: 66px; text-align: center; font-weight: 800; font-size: 15px; color: #5b3fa8; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 26px; }
+  @media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* ── 큰 표시 ── */
+  .now {
+    display: flex; align-items: center; justify-content: center; gap: 22px;
+    background: linear-gradient(135deg, #f7f4ff, #efe9fb);
+    border: 2px solid #ddd5f0; border-radius: 14px; padding: 14px; margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .now .sol {
+    font-size: 62px; font-weight: 800; color: #45268f; line-height: 1.1; min-width: 96px; text-align: center;
+  }
+  .now .meta { font-size: 15px; color: #56496f; line-height: 1.9; }
+  .now .meta b { font-size: 19px; color: #241c33; }
+  .now .meta .hz { color: #5b3fa8; }
+  .cd .hz { font-size: 10.5px; color: #a79ec2; line-height: 1.4; }
+  .cd.on .hz { color: #b9a6ec; }
+  .now.rest .sol { color: #b8b0cc; }
+
+  /* ── 계이름 카드 ── */
+  .cards { display: flex; gap: 7px; overflow-x: auto; padding: 4px 2px 10px; }
+  .cd {
+    flex: 1 0 58px; min-width: 58px; border: 2px solid #ddd5f0; border-radius: 10px;
+    background: #faf8ff; text-align: center; padding: 9px 4px 7px; cursor: pointer;
+    transition: transform .18s, background .18s, border-color .18s, box-shadow .18s;
+  }
+  .cd .s { font-size: 21px; font-weight: 800; color: #4a3a72; line-height: 1.35; }
+  .cd .p { font-size: 11.5px; color: #8a80a5; line-height: 1.5; }
+  .cd.oct2 { background: #f4f0ff; }
+  .cd.on {
+    background: #45268f; border-color: #45268f; transform: translateY(-7px) scale(1.06);
+    box-shadow: 0 6px 14px rgba(69,38,143,.35);
+  }
+  .cd.on .s { color: #fff; }
+  .cd.on .p { color: #d7c9ff; }
+  .cd.done { background: #e7e0f8; border-color: #c9bce8; }
+
+  /* ── 건반 ── */
+  .kbwrap { position: relative; margin: 4px 0 2px; overflow-x: auto; }
+  .kb { position: relative; display: flex; height: 132px; min-width: 620px; user-select: none; }
+  .wk {
+    flex: 1 1 0; border: 1px solid #b3a9c9; border-top: none; border-radius: 0 0 6px 6px;
+    background: linear-gradient(#fff, #f4f1fa); position: relative; cursor: pointer;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px;
+    font-size: 10px; color: #9a91b3;
+  }
+  .wk.on { background: linear-gradient(#c3a9f5, #8a5fd0); color: #fff; }
+  .wk.c b { color: #6b5f8c; }
+  .bk {
+    position: absolute; top: 0; height: 82px; border-radius: 0 0 5px 5px;
+    background: linear-gradient(#3a3050, #171226); z-index: 2; cursor: pointer;
+    box-shadow: 0 2px 3px rgba(0,0,0,.4);
+  }
+  .bk.on { background: linear-gradient(#a37ce8, #6b3fc4); }
+
+  /* ── 오선보 ── */
+  .staffwrap { overflow-x: auto; }
+  svg.staff { display: block; width: 100%; min-width: 720px; height: auto; }
+  .stline { stroke: #3a3050; stroke-width: 1.4; }
+  .ledger { stroke: #3a3050; stroke-width: 1.4; }
+  .nh { fill: none; stroke: #241c33; stroke-width: 2.2; }
+  .nh.on { fill: #45268f; stroke: #45268f; }
+  .nl { font-size: 13px; fill: #7a6f99; font-weight: 700; }
+  .nl.on { fill: #45268f; }
+  .clef { font-size: 46px; fill: #3a3050; }
+  .clefname { font-size: 11px; fill: #8a80a5; }
+  .acc { font-size: 21px; fill: #3a3050; }
+  .keyname { font-size: 14px; fill: #5b3fa8; font-weight: 800; }
+
+  /* ── 진행 막대 ── */
+  .prog { height: 10px; background: #e9e4f6; border-radius: 6px; overflow: hidden; margin: 12px 0 4px; }
+  .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #8a5fd0, #45268f); transition: width .12s linear; }
+  .rounds { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 9px; }
+  .rd {
+    font-size: 12.5px; padding: 4px 10px; border-radius: 999px; border: 1.5px solid #ddd5f0;
+    background: #faf8ff; color: #6a6080; font-weight: 700; line-height: 1.8;
+  }
+  .rd.on { background: #45268f; border-color: #45268f; color: #fff; }
+  .rd.done { background: #e7e0f8; border-color: #c9bce8; color: #4a3a72; }
+
+  footer.sig { text-align: center; font-size: 12px; color: #948db0; line-height: 1.6; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <span class="badge">음악 · 발성 연습</span>
+      <h1>도레미파솔라시도레미파솔라시도 — 두 옥타브 올라가기</h1>
+      <p class="quest">낮은 도부터 한 음씩 올라가 두 옥타브 위 도까지 부릅니다.
+        한 바퀴가 끝나면 반음 올려 다시 시작합니다. 지금 부를 음이 카드·건반·오선보에 함께 표시됩니다.</p>
+    </div>
+    <div class="sig-head">Made by Sangtae Jeong<br>ver 260908_1437</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 연습 -->
+  <div class="card">
+    <h2>① 소리를 들으며 따라 부르기</h2>
+
+    <div class="now" id="now">
+      <div class="sol" id="nowSol">준비</div>
+      <div class="meta">
+        <div>음이름 <b id="nowPitch">–</b></div>
+        <div>주파수 <b id="nowHz" class="hz">–</b></div>
+        <div id="nowRound">시작 단추를 누르면 첫 음이 울립니다.</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="btnPlay" class="big">▶ 시작</button>
+      <button id="btnStop" class="stop" disabled>■ 멈춤</button>
+      <button id="btnBack" class="ghost">↺ 처음으로</button>
+      <span class="chip">바퀴 <b id="cRound">0</b> / <b id="cRoundAll">0</b></span>
+      <span class="chip">조 <b id="cKey">다장조</b></span>
+    </div>
+
+    <div class="prog"><i id="progBar"></i></div>
+    <div class="rounds" id="rounds"></div>
+
+    <div class="cards" id="cards"></div>
+
+    <p class="hint">카드나 건반을 눌러 그 음만 따로 들어 볼 수 있습니다.
+      음이름 아래 숫자는 그 음의 주파수(Hz)로, 라(A4)를 440 Hz 로 맞춘 값입니다. 한 옥타브 오르면 주파수는 두 배가 됩니다.
+      소리가 나지 않으면 화면을 한 번 누른 뒤 다시 시작하세요(브라우저가 첫 소리를 막는 경우가 있습니다).</p>
+  </div>
+
+  <!-- ② 건반 -->
+  <div class="card">
+    <h2>② 건반에서 보기</h2>
+    <div class="kbwrap"><div class="kb" id="kb"></div></div>
+    <p class="hint">지금 부르는 음이 건반에서 빛납니다. 반음을 올리면 시작 자리가 오른쪽으로 한 칸씩 옮겨 갑니다.</p>
+  </div>
+
+  <!-- ③ 오선보 -->
+  <div class="card">
+    <h2>③ 오선보에서 보기</h2>
+    <div class="staffwrap">
+      <svg class="staff" id="staff" viewBox="0 0 880 274" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="발성 연습 음계 오선보"></svg>
+    </div>
+    <p class="hint">위는 높은음자리표, 아래는 낮은음자리표입니다. 가운데 짧은 덧줄에 놓인 음이 가온다(C4)입니다.
+      반음을 올리면 조표(♯·♭)가 함께 바뀝니다.</p>
+  </div>
+
+  <!-- ④ 설정 -->
+  <div class="card">
+    <h2>④ 연습 방법 정하기</h2>
+    <div class="grid2">
+      <div class="setrow"><label>시작음</label>
+        <select id="setStart"></select>
+        <span class="val" id="oStart"></span>
+      </div>
+      <div class="setrow"><label>한 음 길이</label>
+        <input type="range" id="setDur" min="60" max="220" step="10">
+        <span class="val" id="oDur"></span>
+      </div>
+      <div class="setrow"><label>반음 올려 반복</label>
+        <input type="range" id="setRounds" min="1" max="9" step="1">
+        <span class="val" id="oRounds"></span>
+      </div>
+      <div class="setrow"><label>바퀴 사이 쉼</label>
+        <input type="range" id="setGap" min="0" max="40" step="2">
+        <span class="val" id="oGap"></span>
+      </div>
+      <div class="setrow"><label>소리 크기</label>
+        <input type="range" id="setVol" min="0" max="100" step="5">
+        <span class="val" id="oVol"></span>
+      </div>
+      <div class="setrow"><label>음색</label>
+        <select id="setTone">
+          <option value="soft" selected>부드러운 소리</option>
+          <option value="clear">또렷한 소리</option>
+          <option value="piano">피아노풍</option>
+        </select>
+      </div>
+      <div class="setrow"><label>시작 화음</label>
+        <select id="setChord">
+          <option value="1" selected>바퀴마다 들려주기</option>
+          <option value="0">들려주지 않기</option>
+        </select>
+      </div>
+      <div class="setrow"><label>계이름 읽기</label>
+        <select id="setSolfa">
+          <option value="movable" selected>이동 도(늘 '도'로 시작)</option>
+          <option value="fixed">고정 도(실제 음이름)</option>
+        </select>
+      </div>
+    </div>
+    <div class="controls" style="margin-top:14px">
+      <button id="btnOrig" class="ghost">기본값으로 되돌리기</button>
+      <span class="hint">설정을 바꾸면 연습이 처음으로 되돌아갑니다.</span>
+    </div>
+  </div>
+
+  <footer class="sig">Made by Sangtae Jeong<br>ver 260908_1437</footer>
+</div>
+
+<script>
+// ===== 핵심 계산 로직 시작 =====
+// 장음계 15음(두 옥타브 상행)의 반음 간격
+var MAJ = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+// 이동 도 계이름
+var SOLFA = ['도','레','미','파','솔','라','시','도','레','미','파','솔','라','시','도'];
+// 절대 음이름(고정 도)
+var LETTER = ['C','D','E','F','G','A','B'];
+var LETTER_KO = ['다','라','마','바','사','가','나'];
+var FIXED_SOLFA = ['도','레','미','파','솔','라','시'];
+
+// 12개 조 — 으뜸음의 계이름 글자 자리, 조표 종류와 개수
+var KEYS = [
+  { ko: '다장조',     ab: 'C',  letter: 0, sig: 0 },
+  { ko: '내림라장조', ab: 'D♭', letter: 1, sig: -5 },
+  { ko: '라장조',     ab: 'D',  letter: 1, sig: 2 },
+  { ko: '내림마장조', ab: 'E♭', letter: 2, sig: -3 },
+  { ko: '마장조',     ab: 'E',  letter: 2, sig: 4 },
+  { ko: '바장조',     ab: 'F',  letter: 3, sig: -1 },
+  { ko: '내림사장조', ab: 'G♭', letter: 4, sig: -6 },
+  { ko: '사장조',     ab: 'G',  letter: 4, sig: 1 },
+  { ko: '내림가장조', ab: 'A♭', letter: 5, sig: -4 },
+  { ko: '가장조',     ab: 'A',  letter: 5, sig: 3 },
+  { ko: '내림나장조', ab: 'B♭', letter: 6, sig: -2 },
+  { ko: '나장조',     ab: 'B',  letter: 6, sig: 5 }
+];
+
+// MIDI 번호 → 주파수 (A4 = 69 = 440 Hz)
+function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+// 오선 자리 번호(diatonic) — 옥타브 x 7 + 글자 자리. 가온다 C4 = 28
+function diatonicOf(oct, letter) { return oct * 7 + letter; }
+// 조표에서 어떤 글자에 ♯/♭ 가 붙는지 (0=C … 6=B)
+var SHARP_ORDER = [3, 0, 4, 1, 5, 2, 6];   // 파 도 솔 레 라 미 시
+var FLAT_ORDER  = [6, 2, 5, 1, 4, 0, 3];   // 시 미 라 레 솔 도 파
+function accidentalOf(letter, sig) {
+  var i;
+  if (sig > 0) { for (i = 0; i < sig; i++) if (SHARP_ORDER[i] === letter) return '♯'; }
+  if (sig < 0) { for (i = 0; i < -sig; i++) if (FLAT_ORDER[i] === letter) return '♭'; }
+  return '';
+}
+// 한 바퀴(15음) 만들기 — 시작 MIDI 와 조 번호로부터
+function buildRound(startMidi, keyIdx) {
+  var K = KEYS[keyIdx];
+  var oct = Math.floor(startMidi / 12) - 1;              // MIDI 60 = C4
+  var baseDia = diatonicOf(oct, K.letter);
+  var out = [];
+  for (var i = 0; i < 15; i++) {
+    var dia = baseDia + i;
+    var letter = ((dia % 7) + 7) % 7;
+    out.push({
+      i: i,
+      midi: startMidi + MAJ[i],
+      dia: dia,
+      letter: letter,
+      acc: accidentalOf(letter, K.sig),
+      solfa: SOLFA[i]
+    });
+  }
+  return out;
+}
+// 시작음 MIDI 와 올림 반음 수 → 조 번호
+function keyIndexOf(startMidi) { return ((startMidi % 12) + 12) % 12; }
+// 고정 도 계이름(실제 음이름)
+function fixedName(n) { return FIXED_SOLFA[n.letter] + n.acc; }
+// 절대 음이름 표기 (예: F♯3)
+function pitchName(n) { return LETTER[n.letter] + n.acc + (Math.floor(n.dia / 7)); }
+// 한국식 음이름 (예: 올림바)
+function pitchKo(n) {
+  var pre = n.acc === '♯' ? '올림' : (n.acc === '♭' ? '내림' : '');
+  return pre + LETTER_KO[n.letter];
+}
+// 흰건반 여부
+function isWhite(m) { var p = ((m % 12) + 12) % 12; return [0,2,4,5,7,9,11].indexOf(p) >= 0; }
+// 건반 범위 안에서 흰건반이 몇 번째인지
+function whiteIndex(m, lo) {
+  var c = 0;
+  for (var x = lo; x < m; x++) if (isWhite(x)) c++;
+  return c;
+}
+// 전체 연습 차례 만들기 — 각 바퀴는 15음, 바퀴 사이에 쉼을 둔다
+function buildPlan(startMidi, rounds, gapMs) {
+  var plan = [];
+  for (var r = 0; r < rounds; r++) {
+    var sm = startMidi + r;
+    var ki = keyIndexOf(sm);
+    var notes = buildRound(sm, ki);
+    plan.push({ round: r, startMidi: sm, keyIdx: ki, notes: notes });
+    if (r < rounds - 1 && gapMs > 0) plan[plan.length - 1].gapMs = gapMs;
+  }
+  return plan;
+}
+// ===== 핵심 계산 로직 끝 =====
+
+var $ = function (id) { return document.getElementById(id); };
+var PC_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+// MIDI 번호 → 화면에 적을 음이름 (예: F♯3)
+function midiName(m) { return PC_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); }
+// MIDI 번호 → 주파수 글자 (A4 = 440 Hz 기준)
+function hzTxt(m) {
+  var f = midiToFreq(m);
+  return (f < 1000 ? f.toFixed(1) : f.toFixed(0)) + ' Hz';
+}
+
+/* ── 설정 상태 ── */
+var DEF = { start: 48, dur: 110, rounds: 4, gap: 12, vol: 60, tone: 'soft', chord: 1, solfa: 'movable' };
+var S = { start: DEF.start, dur: DEF.dur, rounds: DEF.rounds, gap: DEF.gap,
+          vol: DEF.vol, tone: DEF.tone, chord: DEF.chord, solfa: DEF.solfa };
+
+var KB_LO = 45, KB_HI = 93;   // 건반 범위 A2 ~ A6 (모든 설정의 연습 음을 담는다)
+var plan = [], flat = [];     // flat: 재생 순서대로 펼친 목록
+var pos = -1, playing = false, timer = null;
+var curRound = 0;
+
+/* ── 소리 ── */
+var ac = null, master = null;
+function audio() {
+  if (!ac) {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain();
+    master.gain.value = S.vol / 100 * 0.5;
+    master.connect(ac.destination);
+  }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function setVol() { if (master) master.gain.value = S.vol / 100 * 0.5; }
+// 한 음 울리기 — 음색에 따라 배음과 감쇠를 달리한다
+function playNote(midi, durSec, when, gainScale) {
+  var c = audio(), t = (when === undefined ? c.currentTime : when) + 0.02;
+  var f = midiToFreq(midi);
+  var g = c.createGain();
+  g.connect(master);
+  var peak = 0.9 * (gainScale === undefined ? 1 : gainScale);
+  var parts, type;
+  if (S.tone === 'clear') { parts = [[1, 1], [2, 0.30], [3, 0.14], [4, 0.06]]; type = 'triangle'; }
+  else if (S.tone === 'piano') { parts = [[1, 1], [2, 0.42], [3, 0.20], [4, 0.10], [6, 0.04]]; type = 'sine'; }
+  else { parts = [[1, 1], [2, 0.22], [3, 0.08]]; type = 'sine'; }
+
+  if (S.tone === 'piano') {
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + Math.max(0.35, durSec));
+  } else {
+    var rel = Math.min(0.16, durSec * 0.28);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + 0.05);
+    g.gain.setValueAtTime(peak, t + durSec - rel);
+    g.gain.linearRampToValueAtTime(0, t + durSec);
+  }
+  var stop = t + durSec + (S.tone === 'piano' ? 0.4 : 0.05);
+  parts.forEach(function (p) {
+    var o = c.createOscillator(), og = c.createGain();
+    o.type = type; o.frequency.value = f * p[0];
+    og.gain.value = p[1] / parts.length;
+    o.connect(og); og.connect(g);
+    o.start(t); o.stop(stop);
+  });
+}
+// 으뜸화음 — 도·미·솔·높은도를 함께 짧게 울린다
+function playChord(startMidi) {
+  var c = audio(), t = c.currentTime;
+  [0, 4, 7, 12].forEach(function (s, i) {
+    playNote(startMidi + s, 1.0, t + i * 0.045, 0.45);
+  });
+  return 1200;
+}
+
+/* ── 계이름 카드 ── */
+function renderCards() {
+  var notes = curNotes();
+  var html = '';
+  notes.forEach(function (n, i) {
+    html += '<div class="cd' + (i >= 7 ? ' oct2' : '') + '" data-i="' + i + '">' +
+            '<div class="s">' + (S.solfa === 'fixed' ? fixedName(n) : n.solfa) + '</div>' +
+            '<div class="p">' + pitchName(n) + '</div>' +
+            '<div class="hz">' + hzTxt(n.midi) + '</div></div>';
+  });
+  $('cards').innerHTML = html;
+  Array.prototype.forEach.call($('cards').querySelectorAll('.cd'), function (el) {
+    el.addEventListener('click', function () {
+      var n = curNotes()[parseInt(el.getAttribute('data-i'), 10)];
+      playNote(n.midi, S.dur / 100);
+      if (!playing) { showNote(n); paintCards(n.i); paintKeys(n.midi); paintStaff(n.i); }
+    });
+  });
+}
+function paintCards(idx) {
+  Array.prototype.forEach.call($('cards').querySelectorAll('.cd'), function (el) {
+    var i = parseInt(el.getAttribute('data-i'), 10);
+    el.classList.toggle('on', i === idx);
+    el.classList.toggle('done', idx >= 0 && i < idx);
+  });
+}
+
+/* ── 건반 ── */
+function renderKeyboard() {
+  var whites = [], blacks = [], m;
+  for (m = KB_LO; m <= KB_HI; m++) (isWhite(m) ? whites : blacks).push(m);
+  var wn = whites.length, html = '';
+  whites.forEach(function (w) {
+    var pc = ((w % 12) + 12) % 12, oct = Math.floor(w / 12) - 1;
+    html += '<div class="wk' + (pc === 0 ? ' c' : '') + '" data-m="' + w +
+            '" title="' + midiName(w) + ' · ' + hzTxt(w) + '">' +
+            (pc === 0 ? '<b>C' + oct + '</b>' : '') + '</div>';
+  });
+  blacks.forEach(function (b) {
+    var wi = whiteIndex(b, KB_LO);
+    var left = (wi / wn * 100);
+    html += '<div class="bk" data-m="' + b + '" title="' + midiName(b) + ' · ' + hzTxt(b) +
+            '" style="left:calc(' + left + '% - ' +
+            (100 / wn / 2 * 0.62) + '%);width:calc(' + (100 / wn * 0.62) + '%)"></div>';
+  });
+  $('kb').innerHTML = html;
+  Array.prototype.forEach.call($('kb').children, function (el) {
+    el.addEventListener('click', function () {
+      playNote(parseInt(el.getAttribute('data-m'), 10), S.dur / 100);
+    });
+  });
+}
+function paintKeys(midi) {
+  Array.prototype.forEach.call($('kb').children, function (el) {
+    el.classList.toggle('on', parseInt(el.getAttribute('data-m'), 10) === midi);
+  });
+}
+
+/* ── 오선보 ── */
+var C4Y = 148, HALF = 7, X0 = 168, DX = 46;
+function yOf(dia) { return C4Y - (dia - 28) * HALF; }
+function renderStaff(idx) {
+  var notes = curNotes(), K = KEYS[curKeyIdx()];
+  var s = '', i, x;
+  // 오선 다섯 줄 x 2
+  [38, 36, 34, 32, 30].forEach(function (d) {
+    s += '<line class="stline" x1="24" y1="' + yOf(d) + '" x2="856" y2="' + yOf(d) + '"/>';
+  });
+  [26, 24, 22, 20, 18].forEach(function (d) {
+    s += '<line class="stline" x1="24" y1="' + yOf(d) + '" x2="856" y2="' + yOf(d) + '"/>';
+  });
+  // 좌우 세로줄
+  s += '<line class="stline" x1="24" y1="' + yOf(38) + '" x2="24" y2="' + yOf(18) + '"/>';
+  s += '<line class="stline" x1="856" y1="' + yOf(38) + '" x2="856" y2="' + yOf(18) + '"/>';
+  // 자리표 (글꼴이 기호를 못 그려도 아래 이름으로 알 수 있게 함께 적는다)
+  s += '<text class="clef" x="34" y="' + (yOf(32) + 16) + '">𝄞</text>';
+  s += '<text class="clefname" x="34" y="' + (yOf(38) - 8) + '">높은음자리표</text>';
+  s += '<text class="clef" x="34" y="' + (yOf(24) + 10) + '">𝄢</text>';
+  s += '<text class="clefname" x="34" y="' + (yOf(18) + 20) + '">낮은음자리표</text>';
+  // 조표
+  var order = K.sig > 0 ? SHARP_ORDER : FLAT_ORDER, cnt = Math.abs(K.sig);
+  var SH_T = { 3: 38, 0: 35, 4: 39, 1: 36, 5: 33, 2: 37, 6: 34 };
+  var FL_T = { 6: 34, 2: 37, 5: 33, 1: 36, 4: 32, 0: 35, 3: 31 };
+  var sym = K.sig > 0 ? '♯' : '♭';
+  for (i = 0; i < cnt; i++) {
+    var L = order[i];
+    var dT = (K.sig > 0 ? SH_T : FL_T)[L];
+    x = 94 + i * 11;
+    s += '<text class="acc" x="' + x + '" y="' + (yOf(dT) + 7) + '">' + sym + '</text>';
+    s += '<text class="acc" x="' + x + '" y="' + (yOf(dT - 14) + 7) + '">' + sym + '</text>';
+  }
+  s += '<text class="keyname" x="26" y="24">' + K.ko + ' (' + K.ab + ')</text>';
+  // 음표
+  notes.forEach(function (n, k) {
+    x = X0 + k * DX;
+    var y = yOf(n.dia), on = (k === idx);
+    // 덧줄
+    var e;
+    if (n.dia > 38) { for (e = 40; e <= n.dia; e += 2) s += ledger(x, e); }
+    if (n.dia < 18) { for (e = 16; e >= n.dia; e -= 2) s += ledger(x, e); }
+    if (n.dia === 28) s += ledger(x, 28);
+    s += '<ellipse class="nh' + (on ? ' on' : '') + '" cx="' + x + '" cy="' + y +
+         '" rx="7.6" ry="5.6" transform="rotate(-18 ' + x + ' ' + y + ')"/>';
+    s += '<text class="nl' + (on ? ' on' : '') + '" x="' + x + '" y="' + (yOf(16) + 26) +
+         '" text-anchor="middle">' + (S.solfa === 'fixed' ? fixedName(n) : n.solfa) + '</text>';
+  });
+  $('staff').innerHTML = s;
+}
+function ledger(x, dia) {
+  return '<line class="ledger" x1="' + (x - 13) + '" y1="' + yOf(dia) + '" x2="' + (x + 13) + '" y2="' + yOf(dia) + '"/>';
+}
+function paintStaff(idx) { renderStaff(idx); }
+
+/* ── 현재 바퀴 ── */
+function curNotes() { return plan.length ? plan[Math.min(curRound, plan.length - 1)].notes : []; }
+function curKeyIdx() { return plan.length ? plan[Math.min(curRound, plan.length - 1)].keyIdx : 0; }
+
+function renderRounds() {
+  var html = '';
+  plan.forEach(function (r, i) {
+    var K = KEYS[r.keyIdx];
+    html += '<span class="rd' + (i === curRound ? ' on' : (i < curRound ? ' done' : '')) +
+            '" data-r="' + i + '">' + (i + 1) + '바퀴 · ' + K.ko + '</span>';
+  });
+  $('rounds').innerHTML = html;
+  $('cRound').textContent = Math.min(curRound + 1, plan.length);
+  $('cRoundAll').textContent = plan.length;
+  $('cKey').textContent = KEYS[curKeyIdx()].ko;
+}
+function showNote(n) {
+  $('now').classList.remove('rest');
+  $('nowSol').textContent = (S.solfa === 'fixed' ? fixedName(n) : n.solfa);
+  $('nowPitch').textContent = pitchName(n) + ' · ' + pitchKo(n);
+  $('nowHz').textContent = hzTxt(n.midi);
+  $('nowRound').textContent = (curRound + 1) + '바퀴 ' + KEYS[curKeyIdx()].ko + ' — ' + (n.i + 1) + '번째 음';
+}
+function showRest(txt) {
+  $('now').classList.add('rest');
+  $('nowSol').textContent = '쉼';
+  $('nowPitch').textContent = '–';
+  $('nowHz').textContent = '–';
+  $('nowRound').textContent = txt;
+}
+
+/* ── 연습 진행 ── */
+function rebuild() {
+  stop();
+  plan = buildPlan(S.start, S.rounds, S.gap * 100);
+  flat = [];
+  plan.forEach(function (r) {
+    if (S.chord === 1) flat.push({ kind: 'chord', r: r.round, startMidi: r.startMidi });
+    r.notes.forEach(function (n) { flat.push({ kind: 'note', r: r.round, n: n }); });
+    if (r.gapMs) flat.push({ kind: 'rest', r: r.round, ms: r.gapMs });
+  });
+  pos = -1; curRound = 0;
+  renderRounds();
+  renderCards();
+  renderStaff(-1);
+  paintKeys(-1);
+  paintCards(-1);
+  $('progBar').style.width = '0%';
+  showRest('시작 단추를 누르면 첫 음이 울립니다.');
+  $('nowSol').textContent = '준비';
+}
+function step() {
+  pos++;
+  if (pos >= flat.length) { finish(); return; }
+  var it = flat[pos];
+  $('progBar').style.width = (pos / flat.length * 100) + '%';
+  if (it.r !== curRound) {
+    curRound = it.r;
+    renderRounds();
+    renderCards();
+  }
+  if (it.kind === 'rest') {
+    showRest('다음 바퀴는 ' + KEYS[plan[it.r + 1].keyIdx].ko + ' — 반음 올라갑니다.');
+    paintCards(-1); paintKeys(-1); paintStaff(-1);
+    timer = setTimeout(step, it.ms);
+    return;
+  }
+  // 바퀴를 시작하기 전에 으뜸화음을 한 번 들려준다
+  if (it.kind === 'chord') {
+    var wait = playChord(it.startMidi);
+    showRest(KEYS[plan[it.r].keyIdx].ko + ' 으뜸화음을 듣고 준비하세요.');
+    paintCards(-1); paintKeys(-1); paintStaff(-1);
+    timer = setTimeout(step, wait);
+    return;
+  }
+  var n = it.n;
+  playNote(n.midi, S.dur / 100);
+  showNote(n);
+  paintCards(n.i); paintKeys(n.midi); paintStaff(n.i);
+  timer = setTimeout(step, S.dur * 10);
+}
+function start() {
+  if (playing) return;
+  audio();
+  if (pos >= flat.length - 1) { pos = -1; curRound = 0; renderRounds(); renderCards(); }
+  playing = true;
+  $('btnPlay').disabled = true;
+  $('btnStop').disabled = false;
+  $('btnPlay').textContent = '▶ 연습 중';
+  step();
+}
+function stop() {
+  playing = false;
+  if (timer) { clearTimeout(timer); timer = null; }
+  $('btnPlay').disabled = false;
+  $('btnStop').disabled = true;
+  $('btnPlay').textContent = '▶ 시작';
+}
+function finish() {
+  stop();
+  $('progBar').style.width = '100%';
+  showRest('모두 마쳤습니다. 잘했어요!');
+  $('nowSol').textContent = '끝';
+  paintCards(-1); paintKeys(-1); paintStaff(-1);
+}
+
+/* ── 설정 화면 ── */
+function fillStartOptions() {
+  var html = '';
+  for (var m = 45; m <= 60; m++) {
+    var nm = ['도','도♯','레','레♯','미','파','파♯','솔','솔♯','라','라♯','시'][((m % 12) + 12) % 12];
+    var pn = midiName(m);
+    html += '<option value="' + m + '"' + (m === 48 ? ' selected' : '') + '>' +
+            pn + ' (' + nm + ') · ' + hzTxt(m) + '</option>';
+  }
+  $('setStart').innerHTML = html;
+}
+function syncSettingsUI() {
+  $('setStart').value = S.start;
+  $('setDur').value = S.dur;
+  $('setRounds').value = S.rounds;
+  $('setGap').value = S.gap;
+  $('setVol').value = S.vol;
+  $('setTone').value = S.tone;
+  $('setChord').value = String(S.chord);
+  $('setSolfa').value = S.solfa;
+  var hi = S.start + (S.rounds - 1) + 24;
+  $('oStart').textContent = '맨 위 ' + midiName(hi) + '까지';
+  $('oDur').textContent = (S.dur / 100).toFixed(1) + '초';
+  $('oRounds').textContent = S.rounds + '바퀴';
+  $('oGap').textContent = (S.gap / 10).toFixed(1) + '초';
+  $('oVol').textContent = S.vol + '%';
+}
+
+/* ── 이벤트 ── */
+$('btnPlay').addEventListener('click', start);
+$('btnStop').addEventListener('click', stop);
+$('btnBack').addEventListener('click', rebuild);
+
+$('setStart').addEventListener('change', function (e) { S.start = parseInt(e.target.value, 10); syncSettingsUI(); rebuild(); });
+$('setDur').addEventListener('input', function (e) { S.dur = parseInt(e.target.value, 10); syncSettingsUI(); });
+$('setRounds').addEventListener('input', function (e) { S.rounds = parseInt(e.target.value, 10); syncSettingsUI(); rebuild(); });
+$('setGap').addEventListener('input', function (e) { S.gap = parseInt(e.target.value, 10); syncSettingsUI(); rebuild(); });
+$('setVol').addEventListener('input', function (e) { S.vol = parseInt(e.target.value, 10); syncSettingsUI(); setVol(); });
+$('setTone').addEventListener('change', function (e) { S.tone = e.target.value; });
+$('setChord').addEventListener('change', function (e) { S.chord = parseInt(e.target.value, 10); rebuild(); });
+$('setSolfa').addEventListener('change', function (e) { S.solfa = e.target.value; renderCards(); renderStaff(-1); });
+$('btnOrig').addEventListener('click', function () {
+  S = { start: DEF.start, dur: DEF.dur, rounds: DEF.rounds, gap: DEF.gap,
+        vol: DEF.vol, tone: DEF.tone, chord: DEF.chord, solfa: DEF.solfa };
+  syncSettingsUI(); setVol(); rebuild();
+});
+document.addEventListener('keydown', function (e) {
+  var tg = e.target.tagName;
+  if (tg === 'INPUT' || tg === 'SELECT' || tg === 'BUTTON') return;
+  if (e.code === 'Space') { e.preventDefault(); playing ? stop() : start(); }
+});
+
+/* ── 시작 ── */
+fillStartOptions();
+syncSettingsUI();
+renderKeyboard();
+rebuild();
+</script>
+</body>
+</html>

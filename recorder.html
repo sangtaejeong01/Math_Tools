@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소프라노 리코더 운지법 · 저먼식</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 40px;
+    font-family: "맑은 고딕", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: #f1f0f7; color: #1e1c2e;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  header {
+    background: linear-gradient(135deg, #2f3a8c, #5566cc);
+    color: #fff; padding: 18px 0 22px; margin-bottom: 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  }
+  header .wrap { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .badge {
+    background: #ffd166; color: #6b4a00; font-weight: 800;
+    border-radius: 999px; padding: 6px 14px; font-size: 15px; white-space: nowrap;
+  }
+  h1 { font-size: 21px; margin: 4px 0 6px; }
+  .quest { font-size: 16px; line-height: 1.6; opacity: .95; max-width: 830px; }
+  .sig-head { margin-left: auto; text-align: right; font-size: 12px; color: rgba(255,255,255,.75); line-height: 1.5; }
+
+  .card {
+    background: #fff; border-radius: 14px; padding: 18px 20px; margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(30,28,46,.10);
+  }
+  .card > h2 {
+    font-size: 17px; margin: 0 0 14px; padding-left: 10px;
+    border-left: 5px solid #2f3a8c; line-height: 1.3;
+  }
+  .hint { font-size: 13.5px; color: #625d7a; line-height: 1.7; }
+
+  button {
+    font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+    border: none; border-radius: 9px; padding: 10px 18px; background: #2f3a8c; color: #fff;
+    transition: filter .15s, transform .05s;
+  }
+  button:hover { filter: brightness(1.14); }
+  button:active { transform: translateY(1px); }
+  button.ghost { background: #e6e6f5; color: #3d3a63; }
+  button.stop { background: #b3341e; }
+  button:disabled { background: #d3d1e2; color: #9794ad; cursor: default; }
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    background: #eeeef9; border-radius: 8px; padding: 6px 11px; font-size: 14px;
+    border: 1px solid #d8d6ec; line-height: 2.0; white-space: nowrap;
+  }
+  .chip b { font-size: 16px; color: #2f3a8c; }
+  select { font-family: inherit; font-size: 14px; border: 1px solid #d8d6ec; border-radius: 7px; padding: 5px 7px; background: #fff; }
+  input[type=range] { accent-color: #2f3a8c; flex: 1 1 140px; min-width: 120px; max-width: 230px; }
+  .setrow { display: flex; align-items: center; gap: 9px; font-size: 14px; flex-wrap: wrap; }
+  .setrow > label { min-width: 96px; color: #4a4670; font-weight: 700; }
+  .val { min-width: 62px; text-align: center; font-weight: 800; font-size: 15px; color: #2f3a8c; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 26px; }
+  @media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tabs button { padding: 9px 18px; font-size: 15px; }
+  .tabs button.off { background: #e6e6f5; color: #3d3a63; }
+
+  /* ── 음 카드 ── */
+  .notes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nb {
+    border: 2px solid #d8d6ec; border-radius: 9px; background: #fafaff; cursor: pointer;
+    padding: 7px 10px; text-align: center; min-width: 68px; line-height: 1.6;
+    transition: transform .15s, background .15s, border-color .15s;
+  }
+  .nb .s { font-size: 15px; font-weight: 800; color: #3d3a63; }
+  .nb .p { font-size: 11px; color: #8b87a8; }
+  .nb.acc { background: #f3f0fb; }
+  .nb.on { background: #2f3a8c; border-color: #2f3a8c; transform: translateY(-4px); }
+  .nb.on .s { color: #fff; }
+  .nb.on .p { color: #bfc4ec; }
+  .nb.diff { border-color: #f0b429; }
+
+  /* ── 운지 그림 ── */
+  .fingerwrap { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
+  .fig { flex: 0 0 auto; text-align: center; }
+  .fig h3 { font-size: 14px; margin: 0 0 6px; color: #4a4670; }
+  .fig h3 small { display: block; font-weight: 600; font-size: 11.5px; color: #8b87a8; }
+  svg.rec { display: block; }
+  .info { flex: 1 1 260px; min-width: 250px; }
+  .info .big { font-size: 32px; font-weight: 800; color: #2f3a8c; line-height: 1.3; }
+  .info table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin-top: 10px; }
+  .info td { border-bottom: 1px solid #ececf6; padding: 6px 8px; line-height: 1.8; }
+  .info td:first-child { color: #7b7799; width: 42%; }
+  .info td b { color: #1e1c2e; }
+  .warn {
+    margin-top: 10px; font-size: 13px; line-height: 1.7; color: #8a5a00;
+    background: #fff8e6; border: 1.5px solid #ffd88a; border-radius: 9px; padding: 9px 11px;
+  }
+
+  /* ── 오선보 ── */
+  .staffwrap { overflow-x: auto; }
+  svg.staff { display: block; width: 100%; max-width: 460px; height: auto; }
+  .stline, .ledger { stroke: #2e2a45; stroke-width: 1.4; }
+  .nh { fill: #2f3a8c; stroke: #2f3a8c; stroke-width: 1.6; }
+  .accs { font-size: 20px; fill: #2e2a45; }
+  .clef { font-size: 46px; fill: #2e2a45; }
+
+  /* ── 전체 표 ── */
+  .tablewrap { overflow-x: auto; border: 1px solid #d8d6ec; border-radius: 10px; }
+  table.ftab { border-collapse: collapse; font-size: 12.5px; background: #fff; }
+  table.ftab th, table.ftab td { border: 1px solid #e4e2f0; padding: 3px 5px; text-align: center; white-space: nowrap; }
+  table.ftab thead th { background: #eeeef9; color: #3d3a63; font-size: 12px; line-height: 1.6; }
+  table.ftab thead th.diff { background: #fff5da; }
+  table.ftab td.lab { background: #f7f7fc; text-align: left; color: #4a4670; font-weight: 700; padding-left: 9px; }
+  table.ftab td.sep { border-bottom: 2px solid #b9b5d4; }
+  table.ftab th.cur, table.ftab td.cur { background: #e7e9fa; }
+  .dot { font-size: 15px; line-height: 1.2; }
+  .dot.c { color: #1e1c2e; }
+  .dot.o { color: #a9a5c4; }
+  .dot.h { color: #b3341e; }
+
+  .src {
+    font-size: 12.5px; color: #7b7799; line-height: 1.8; background: #f7f7fc;
+    border-left: 4px solid #d8d6ec; padding: 9px 12px; border-radius: 0 8px 8px 0; margin-top: 12px;
+  }
+  footer.sig { text-align: center; font-size: 12px; color: #9794ad; line-height: 1.6; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <span class="badge">음악 · 소프라노 리코더</span>
+      <h1>운지법 익히기 — 저먼식(독일식)</h1>
+      <p class="quest">음을 고르면 손가락 자리와 소리, 오선보, 주파수가 함께 나옵니다.
+        ● 막는다 · ○ 연다 · ◐ 반 연다. 소프라노 리코더는 적힌 음보다 한 옥타브 높게 소리 납니다.</p>
+    </div>
+    <div class="sig-head">Made by Sangtae Jeong<br>ver 260908_1547</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ① 음 고르기 -->
+  <div class="card">
+    <h2>① 음 고르기</h2>
+    <div class="tabs">
+      <button id="tabG">저먼식(독일식)</button>
+      <button id="tabB" class="off">바로크식(영국식)</button>
+      <button id="tabBoth" class="off">둘 다 보기</button>
+    </div>
+    <div class="controls" style="margin-bottom:12px">
+      <label class="chip">음역
+        <select id="setRange">
+          <option value="basic" selected>낮은 도 ~ 높은 레 (반음 포함)</option>
+          <option value="all">운지표 전체 (낮은 도 ~ 높은 솔♯)</option>
+        </select>
+      </label>
+      <label class="chip"><input type="checkbox" id="setSemi" checked> 반음 보이기</label>
+      <button id="btnPrev" class="ghost">◀ 앞 음</button>
+      <button id="btnNext" class="ghost">뒤 음 ▶</button>
+      <button id="btnPlayAll">▶ 차례로 불어 보기</button>
+      <button id="btnStop" class="stop" disabled>■ 멈춤</button>
+    </div>
+    <div class="notes" id="notes"></div>
+    <p class="hint" style="margin-top:12px">노란 테두리는 저먼식과 바로크식의 운지가 서로 다른 음입니다.
+      좌우 화살표 키로도 음을 옮길 수 있고, 스페이스로 소리를 냅니다.</p>
+  </div>
+
+  <!-- ② 운지 -->
+  <div class="card">
+    <h2>② 손가락 자리</h2>
+    <div class="fingerwrap">
+      <div id="figs" style="display:flex;gap:22px;flex-wrap:wrap"></div>
+      <div class="info">
+        <div class="big" id="bigName">–</div>
+        <div class="staffwrap"><svg class="staff" id="staff" viewBox="0 0 300 150" role="img" aria-label="음표"></svg></div>
+        <table>
+          <tr><td>적는 음 (기보)</td><td><b id="iWrite">–</b></td></tr>
+          <tr><td>실제 나는 소리 (실음)</td><td><b id="iSound">–</b></td></tr>
+          <tr><td>실음 주파수</td><td><b id="iHz">–</b></td></tr>
+          <tr><td>막는 구멍</td><td><b id="iHoles">–</b></td></tr>
+        </table>
+        <div class="warn" id="diffWarn" style="display:none"></div>
+        <div class="controls" style="margin-top:12px">
+          <button id="btnSound">🔊 소리 듣기</button>
+          <button id="btnLong" class="ghost">길게 불기</button>
+        </div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:14px">뒤쪽에 있는 <b>엄지구멍</b>은 그림 왼쪽에 따로 그렸습니다.
+      ◐ 는 구멍을 반만 여는 것으로, 높은 음을 낼 때 엄지로 만듭니다.</p>
+  </div>
+
+  <!-- ③ 전체 운지표 -->
+  <div class="card">
+    <h2>③ 한눈에 보는 운지표</h2>
+    <div class="tablewrap"><table class="ftab" id="ftab"></table></div>
+    <p class="hint" style="margin-top:10px">인쇄해서 나눠 주기 좋게 만들었습니다. 지금 고른 음의 칸이 파랗게 표시됩니다.</p>
+    <div class="src" id="srcBox"></div>
+  </div>
+
+  <!-- ④ 소리 정하기 -->
+  <div class="card">
+    <h2>④ 소리 정하기</h2>
+    <div class="grid2">
+      <div class="setrow"><label>한 음 길이</label>
+        <input type="range" id="setDur" min="40" max="200" step="10">
+        <span class="val" id="oDur"></span>
+      </div>
+      <div class="setrow"><label>소리 크기</label>
+        <input type="range" id="setVol" min="0" max="100" step="5">
+        <span class="val" id="oVol"></span>
+      </div>
+    </div>
+    <div class="controls" style="margin-top:14px">
+      <button id="btnOrig" class="ghost">기본값으로 되돌리기</button>
+    </div>
+  </div>
+
+  <footer class="sig">Made by Sangtae Jeong<br>ver 260908_1547</footer>
+</div>
+
+<script>
+// ===== 핵심 자료 시작 =====
+// 출처: 소장 자료 '리코더 운지법.pptx' 1쪽 소프라노 운지표.
+// 21음을 원본과 한 칸씩 대조했고, '시'(B4)의 바로크식 한 곳만 바로잡았다.
+//   원본 표: 엄지·왼손 가운뎃·왼손 약(COCCOOOO) / 고친 값: 엄지·왼손 집게(CCOOOOOO)
+//   저먼식과 바로크식의 차이는 4번 구멍(오른손 집게) 크기에서 비롯되므로 파·파♯ 계열에만 나타나고,
+//   '시'는 두 방식이 같다. 나머지 20음은 원본 그대로다.
+// 순서는 엄지 · 왼손(집게·가운뎃·약) · 오른손(집게·가운뎃·약·새끼) 여덟 자리.
+// C = 막는다(●) / O = 연다(○) / H = 반 연다(◐)
+var HOLE_KO = ['엄지', '왼손 집게', '왼손 가운뎃', '왼손 약', '오른손 집게', '오른손 가운뎃', '오른손 약', '오른손 새끼'];
+var FING = [
+  { w: 60, dia: 28, acc: '',  ko: '도',        G: 'CCCCCCCC', B: 'CCCCCCCC' },
+  { w: 61, dia: 28, acc: '♯', ko: '도♯',       G: 'CCCCCCCH', B: 'CCCCCCCH' },
+  { w: 62, dia: 29, acc: '',  ko: '레',        G: 'CCCCCCCO', B: 'CCCCCCCO' },
+  { w: 63, dia: 29, acc: '♯', ko: '레♯',       G: 'CCCCCCHO', B: 'CCCCCCHO' },
+  { w: 64, dia: 30, acc: '',  ko: '미',        G: 'CCCCCCOO', B: 'CCCCCCOO' },
+  { w: 65, dia: 31, acc: '',  ko: '파',        G: 'CCCCCOOO', B: 'CCCCCOCC' },
+  { w: 66, dia: 31, acc: '♯', ko: '파♯',       G: 'CCCCOCCC', B: 'CCCCOCCO' },
+  { w: 67, dia: 32, acc: '',  ko: '솔',        G: 'CCCCOOOO', B: 'CCCCOOOO' },
+  { w: 68, dia: 32, acc: '♯', ko: '솔♯',       G: 'CCCOCCOO', B: 'CCCOCCOO' },
+  { w: 69, dia: 33, acc: '',  ko: '라',        G: 'CCCOOOOO', B: 'CCCOOOOO' },
+  { w: 70, dia: 34, acc: '♭', ko: '시♭',       G: 'CCOCCOOO', B: 'CCOCCOOO' },
+  { w: 71, dia: 34, acc: '',  ko: '시',        G: 'CCOOOOOO', B: 'CCOOOOOO' },  // 바로크식 수정: 원본 표는 'COCCOOOO'
+  { w: 72, dia: 35, acc: '',  ko: '높은 도',   G: 'COCOOOOO', B: 'COCOOOOO' },
+  { w: 73, dia: 35, acc: '♯', ko: '높은 도♯',  G: 'OCCOOOOO', B: 'OCCOOOOO' },
+  { w: 74, dia: 36, acc: '',  ko: '높은 레',   G: 'OOCOOOOO', B: 'OOCOOOOO' },
+  { w: 75, dia: 36, acc: '♯', ko: '높은 레♯',  G: 'OOCCCCCO', B: 'OOCCCCCO' },
+  { w: 76, dia: 37, acc: '',  ko: '높은 미',   G: 'HCCCCCOO', B: 'HCCCCCOO' },
+  { w: 77, dia: 38, acc: '',  ko: '높은 파',   G: 'HCCCCOOO', B: 'HCCCCOCO' },
+  { w: 78, dia: 38, acc: '♯', ko: '높은 파♯',  G: 'HCCCOCOO', B: 'HCCCOCOO' },
+  { w: 79, dia: 39, acc: '',  ko: '높은 솔',   G: 'HCCCOOOO', B: 'HCCCOOOO' },
+  { w: 80, dia: 39, acc: '♯', ko: '높은 솔♯',  G: 'HCCCOCCC', B: 'HCCOCOOO' }
+];
+var BASIC_MAX = 14;                 // 낮은 도 ~ 높은 레
+var OCTAVE_UP = 12;                 // 소프라노 리코더는 적힌 음보다 8도 위로 난다
+
+function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function soundingMidi(f) { return f.w + OCTAVE_UP; }
+// 저먼식과 바로크식이 다른 음인지
+function isDiff(f) { return f.G !== f.B; }
+// 막는 구멍을 사람이 읽는 말로
+function holeText(pat) {
+  var closed = [], half = [];
+  for (var i = 0; i < 8; i++) {
+    if (pat[i] === 'C') closed.push(HOLE_KO[i]);
+    else if (pat[i] === 'H') half.push(HOLE_KO[i]);
+  }
+  var s = closed.length ? closed.join(' · ') : '없음(모두 연다)';
+  if (half.length) s += ' / 반만 여는 곳: ' + half.join(' · ');
+  return s;
+}
+// 화면에 보일 음 목록
+function visibleList(rangeAll, showSemi) {
+  var out = [];
+  for (var i = 0; i < FING.length; i++) {
+    if (!rangeAll && i > BASIC_MAX) continue;
+    if (!showSemi && FING[i].acc) continue;
+    out.push(i);
+  }
+  return out;
+}
+// ===== 핵심 자료 끝 =====
+
+var $ = function (id) { return document.getElementById(id); };
+var PC_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+function midiName(m) { return PC_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1); }
+function hzTxt(m) { var f = midiToFreq(m); return (f < 1000 ? f.toFixed(1) : f.toFixed(0)) + ' Hz'; }
+function writtenName(f) {
+  var L = ['C','D','E','F','G','A','B'][((f.dia % 7) + 7) % 7];
+  return L + f.acc + Math.floor(f.dia / 7);
+}
+
+/* ── 상태 ── */
+var DEF = { dur: 90, vol: 60 };
+var S = { dur: DEF.dur, vol: DEF.vol };
+var view = 'G', cur = 0, rangeAll = false, showSemi = true;
+var playing = false, timer = null, seq = [], sPos = -1;
+
+/* ── 소리 ── */
+var ac = null, master = null;
+function audio() {
+  if (!ac) {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain();
+    master.gain.value = S.vol / 100 * 0.5;
+    master.connect(ac.destination);
+  }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function setVol() { if (master) master.gain.value = S.vol / 100 * 0.5; }
+// 리코더는 배음이 적은 맑은 소리에 가깝다
+function playNote(midi, durSec) {
+  var c = audio(), t = c.currentTime + 0.02;
+  var f = midiToFreq(midi), g = c.createGain();
+  g.connect(master);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.85, t + 0.06);
+  g.gain.setValueAtTime(0.85, t + durSec - 0.10);
+  g.gain.linearRampToValueAtTime(0, t + durSec);
+  [[1, 1], [2, 0.16], [3, 0.06]].forEach(function (p) {
+    var o = c.createOscillator(), og = c.createGain();
+    o.type = 'sine'; o.frequency.value = f * p[0];
+    og.gain.value = p[1] / 1.22;
+    o.connect(og); og.connect(g);
+    o.start(t); o.stop(t + durSec + 0.05);
+  });
+}
+
+/* ── 음 카드 ── */
+function renderNotes() {
+  var list = visibleList(rangeAll, showSemi), html = '';
+  list.forEach(function (i) {
+    var f = FING[i];
+    html += '<div class="nb' + (f.acc ? ' acc' : '') + (isDiff(f) ? ' diff' : '') + (i === cur ? ' on' : '') +
+            '" data-i="' + i + '"><div class="s">' + f.ko + '</div>' +
+            '<div class="p">' + writtenName(f) + '</div></div>';
+  });
+  $('notes').innerHTML = html;
+  Array.prototype.forEach.call($('notes').children, function (el) {
+    el.addEventListener('click', function () {
+      stopPlay();
+      select(parseInt(el.getAttribute('data-i'), 10), true);
+    });
+  });
+}
+
+/* ── 운지 그림 ── */
+function recorderSVG(pat, tag) {
+  var W = 132, H = 384;
+  var s = '<svg class="rec" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + tag + ' 운지">';
+  // 몸통
+  s += '<rect x="52" y="10" width="46" height="364" rx="20" fill="#f0e4c8" stroke="#a58a52" stroke-width="2"/>';
+  s += '<rect x="52" y="10" width="46" height="42" rx="18" fill="#e6d4ae" stroke="#a58a52" stroke-width="2"/>';
+  s += '<rect x="60" y="24" width="30" height="13" rx="3" fill="#7b5c28"/>';   // 취구
+  s += '<line x1="52" y1="196" x2="98" y2="196" stroke="#c8b183" stroke-width="2"/>';
+  s += '<line x1="52" y1="330" x2="98" y2="330" stroke="#c8b183" stroke-width="2"/>';
+  // 엄지 구멍 (뒤쪽) — 왼쪽에 따로
+  s += hole(24, 84, 11, pat[0]);
+  s += '<text x="24" y="66" text-anchor="middle" font-size="10.5" fill="#8b87a8">뒤 엄지</text>';
+  s += '<line x1="36" y1="84" x2="50" y2="84" stroke="#c9c5de" stroke-width="1.5" stroke-dasharray="3 3"/>';
+  // 앞 구멍 7개
+  var ys = [84, 120, 156, 214, 250, 288, 328];
+  for (var i = 1; i <= 7; i++) {
+    var r = (i >= 6) ? 9 : 11;
+    s += hole(75, ys[i - 1], r, pat[i]);
+    s += '<text x="112" y="' + (ys[i - 1] + 4) + '" font-size="10.5" fill="#a9a5c4">' + i + '</text>';
+  }
+  s += '<text x="24" y="205" text-anchor="middle" font-size="10.5" fill="#8b87a8">왼손</text>';
+  s += '<text x="24" y="262" text-anchor="middle" font-size="10.5" fill="#8b87a8">오른손</text>';
+  s += '</svg>';
+  return s;
+}
+function hole(cx, cy, r, st) {
+  if (st === 'C') return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#1e1c2e" stroke="#1e1c2e" stroke-width="2"/>';
+  if (st === 'O') return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fff" stroke="#1e1c2e" stroke-width="2"/>';
+  // 반 열기 — 왼쪽 절반만 채운다
+  return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fff" stroke="#1e1c2e" stroke-width="2"/>' +
+         '<path d="M ' + cx + ' ' + (cy - r) + ' A ' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy + r) + ' Z" fill="#1e1c2e"/>';
+}
+function renderFigs() {
+  var f = FING[cur], html = '';
+  var kinds = (view === 'both') ? ['G', 'B'] : [view];
+  kinds.forEach(function (k) {
+    var nm = (k === 'G') ? '저먼식(독일식)' : '바로크식(영국식)';
+    html += '<div class="fig"><h3>' + nm + '<small>' + patText(f[k]) + '</small></h3>' + recorderSVG(f[k], nm) + '</div>';
+  });
+  $('figs').innerHTML = html;
+}
+// 여덟 자리를 기호로 (엄지 다음에 한 칸 띄우고, 왼손 셋 다음에 한 칸)
+function patText(pat) {
+  var m = { C: '●', O: '○', H: '◐' };
+  return m[pat[0]] + ' ' + pat.slice(1, 4).split('').map(function (c) { return m[c]; }).join('') +
+         ' ' + pat.slice(4).split('').map(function (c) { return m[c]; }).join('');
+}
+
+/* ── 오선보 ── */
+var TOPY = 34, HH = 8;
+function yOf(dia) { return TOPY + (38 - dia) * HH; }
+function renderStaff() {
+  var f = FING[cur], s = '';
+  [38,36,34,32,30].forEach(function (d) { s += '<line class="stline" x1="10" y1="' + yOf(d) + '" x2="290" y2="' + yOf(d) + '"/>'; });
+  s += '<text class="clef" x="16" y="' + (yOf(32) + 17) + '">𝄞</text>';
+  var x = 190, y = yOf(f.dia), e;
+  if (f.dia < 30) { for (e = 28; e >= f.dia; e -= 2) s += '<line class="ledger" x1="' + (x - 16) + '" y1="' + yOf(e) + '" x2="' + (x + 16) + '" y2="' + yOf(e) + '"/>'; }
+  if (f.dia > 38) { for (e = 40; e <= f.dia; e += 2) s += '<line class="ledger" x1="' + (x - 16) + '" y1="' + yOf(e) + '" x2="' + (x + 16) + '" y2="' + yOf(e) + '"/>'; }
+  if (f.acc) s += '<text class="accs" x="' + (x - 34) + '" y="' + (y + 7) + '">' + f.acc + '</text>';
+  s += '<ellipse class="nh" cx="' + x + '" cy="' + y + '" rx="8.4" ry="6.2" transform="rotate(-18 ' + x + ' ' + y + ')"/>';
+  $('staff').innerHTML = s;
+}
+
+/* ── 전체 표 ── */
+function renderTable() {
+  var list = visibleList(rangeAll, showSemi);
+  var kinds = (view === 'both') ? ['G', 'B'] : [view];
+  var head = '<thead><tr><th rowspan="' + (kinds.length > 1 ? 2 : 1) + '">구멍</th>';
+  list.forEach(function (i) {
+    var f = FING[i];
+    head += '<th colspan="' + kinds.length + '" class="' + (isDiff(f) ? 'diff ' : '') + (i === cur ? 'cur' : '') + '">' +
+            f.ko + '<br><span style="font-weight:600;color:#8b87a8">' + writtenName(f) + '</span></th>';
+  });
+  head += '</tr>';
+  if (kinds.length > 1) {
+    head += '<tr>';
+    list.forEach(function (i) {
+      kinds.forEach(function (k) {
+        head += '<th class="' + (i === cur ? 'cur' : '') + '">' + (k === 'G' ? '저먼' : '바로크') + '</th>';
+      });
+    });
+    head += '</tr>';
+  }
+  head += '</thead>';
+  var body = '<tbody>';
+  for (var r = 0; r < 8; r++) {
+    body += '<tr><td class="lab' + (r === 3 ? ' sep' : '') + '">' + HOLE_KO[r] + '</td>';
+    list.forEach(function (i) {
+      kinds.forEach(function (k) {
+        var st = FING[i][k][r];
+        var cls = st === 'C' ? 'c' : (st === 'O' ? 'o' : 'h');
+        var ch = st === 'C' ? '●' : (st === 'O' ? '○' : '◐');
+        body += '<td class="' + (r === 3 ? 'sep ' : '') + (i === cur ? 'cur' : '') + '"><span class="dot ' + cls + '">' + ch + '</span></td>';
+      });
+    });
+    body += '</tr>';
+  }
+  body += '</tbody>';
+  $('ftab').innerHTML = head + body;
+}
+
+/* ── 고르기 ── */
+function select(i, sound) {
+  cur = i;
+  var f = FING[cur];
+  renderNotes(); renderFigs(); renderStaff(); renderTable();
+  $('bigName').textContent = f.ko;
+  $('iWrite').textContent = writtenName(f) + ' (오선에 적는 자리)';
+  $('iSound').textContent = midiName(soundingMidi(f)) + ' (한 옥타브 위)';
+  $('iHz').textContent = hzTxt(soundingMidi(f));
+  $('iHoles').textContent = holeText(f[view === 'both' ? 'G' : view]);
+  if (isDiff(f)) {
+    $('diffWarn').style.display = '';
+    $('diffWarn').innerHTML = '이 음은 <b>저먼식과 바로크식의 운지가 다릅니다.</b><br>' +
+      '저먼식 ' + patText(f.G) + ' / 바로크식 ' + patText(f.B) +
+      '<br>학생이 쓰는 악기가 어느 쪽인지 확인하세요.';
+  } else $('diffWarn').style.display = 'none';
+  if (sound) playNote(soundingMidi(f), S.dur / 100);
+}
+function move(d) {
+  var list = visibleList(rangeAll, showSemi);
+  var at = list.indexOf(cur);
+  if (at < 0) { select(list[0], false); return; }
+  var nx = at + d;
+  if (nx < 0 || nx >= list.length) return;
+  select(list[nx], true);
+}
+
+/* ── 차례로 불어 보기 ── */
+function startPlay() {
+  stopPlay();
+  audio();
+  seq = visibleList(rangeAll, showSemi);
+  sPos = -1;
+  playing = true;
+  $('btnStop').disabled = false;
+  $('btnPlayAll').disabled = true;
+  playStep();
+}
+function playStep() {
+  sPos++;
+  if (sPos >= seq.length) { stopPlay(); return; }
+  select(seq[sPos], true);
+  timer = setTimeout(playStep, S.dur * 10 + 90);
+}
+function stopPlay() {
+  playing = false;
+  if (timer) { clearTimeout(timer); timer = null; }
+  $('btnStop').disabled = true;
+  $('btnPlayAll').disabled = false;
+}
+
+/* ── 설정 ── */
+function syncSettingsUI() {
+  $('setDur').value = S.dur;
+  $('setVol').value = S.vol;
+  $('oDur').textContent = (S.dur / 100).toFixed(1) + '초';
+  $('oVol').textContent = S.vol + '%';
+}
+function setTabs() {
+  $('tabG').className = (view === 'G') ? '' : 'off';
+  $('tabB').className = (view === 'B') ? '' : 'off';
+  $('tabBoth').className = (view === 'both') ? '' : 'off';
+}
+function fixCur() {
+  var list = visibleList(rangeAll, showSemi);
+  if (list.indexOf(cur) < 0) cur = list[0];
+}
+
+/* ── 이벤트 ── */
+$('tabG').addEventListener('click', function () { view = 'G'; setTabs(); select(cur, false); });
+$('tabB').addEventListener('click', function () { view = 'B'; setTabs(); select(cur, false); });
+$('tabBoth').addEventListener('click', function () { view = 'both'; setTabs(); select(cur, false); });
+$('setRange').addEventListener('change', function (e) {
+  rangeAll = (e.target.value === 'all'); stopPlay(); fixCur(); select(cur, false);
+});
+$('setSemi').addEventListener('change', function (e) {
+  showSemi = e.target.checked; stopPlay(); fixCur(); select(cur, false);
+});
+$('btnPrev').addEventListener('click', function () { stopPlay(); move(-1); });
+$('btnNext').addEventListener('click', function () { stopPlay(); move(1); });
+$('btnPlayAll').addEventListener('click', startPlay);
+$('btnStop').addEventListener('click', stopPlay);
+$('btnSound').addEventListener('click', function () { playNote(soundingMidi(FING[cur]), S.dur / 100); });
+$('btnLong').addEventListener('click', function () { playNote(soundingMidi(FING[cur]), 2.4); });
+$('setDur').addEventListener('input', function (e) { S.dur = parseInt(e.target.value, 10); syncSettingsUI(); });
+$('setVol').addEventListener('input', function (e) { S.vol = parseInt(e.target.value, 10); syncSettingsUI(); setVol(); });
+$('btnOrig').addEventListener('click', function () { S = { dur: DEF.dur, vol: DEF.vol }; syncSettingsUI(); setVol(); });
+document.addEventListener('keydown', function (e) {
+  var tg = e.target.tagName;
+  if (tg === 'INPUT' || tg === 'SELECT' || tg === 'BUTTON') return;
+  if (e.code === 'ArrowRight') { e.preventDefault(); stopPlay(); move(1); }
+  if (e.code === 'ArrowLeft') { e.preventDefault(); stopPlay(); move(-1); }
+  if (e.code === 'Space') { e.preventDefault(); playNote(soundingMidi(FING[cur]), S.dur / 100); }
+});
+
+/* ── 출처 ── */
+$('srcBox').innerHTML =
+  '<b>출처</b> — 소장 자료 <b>리코더 운지법.pptx</b> 1쪽 소프라노 운지표(저먼식 G(D) · 바로크식 B(E) 병기, ' +
+  '낮은 도부터 높은 솔♯까지 21음)를 옮겼습니다. 기호도 원본과 같습니다(● 막는다 / ○ 연다 / ◐ 반 연다).<br>' +
+  '원본에 실리지 않은 음과 운지는 넣지 않았습니다.<br>' +
+  '<b>원본과 다른 곳 한 군데</b> — <b>시</b>의 바로크식 운지를 원본 표(엄지 · 왼손 가운뎃 · 왼손 약)가 아니라 표준 운지인 <b>엄지 · 왼손 집게</b>(저먼식과 같음)로 실었습니다. 저먼식과 바로크식의 차이는 4번 구멍(오른손 집게) 크기에서 비롯되어 파 · 파♯ 계열에만 나타나며, 시는 두 방식이 같습니다. 나머지 20음은 원본 그대로입니다.';
+
+/* ── 시작 ── */
+syncSettingsUI();
+setTabs();
+select(0, false);
+</script>
+</body>
+</html>
