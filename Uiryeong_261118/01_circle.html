@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="초등 6학년 「원의 둘레와 넓이」 도입 동기유발 웹앱 ― 원을 굴리고 펼치며 원주율 3.14와 원의 넓이를 스스로 발견합니다.">
+<meta name="theme-color" content="#2f7fe0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="원의 비밀">
+<title>굴리고 펼쳐서 발견하는 원의 둘레와 넓이</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20100%20100%27%3E%3Ctext%20y=%27.9em%27%20font-size=%2790%27%3E%E2%97%AF%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f3f7fb; --ink:#1f2d3d; --muted:#5b6b7d;
+    --blue:#2f7fe0; --blue-d:#1e5fb0; --teal:#16b8a6;
+    --orange:#ff8c42; --yellow:#ffd23f; --pink:#ff6b8a;
+    --green:#34c759; --card:#ffffff; --line:#dce6f0;
+    --shadow:0 8px 28px rgba(31,45,61,.10);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%;}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#e9f3ff 0%,var(--bg) 60%);
+    color:var(--ink); min-height:100%; overflow-x:hidden;
+  }
+  .app{max-width:980px; margin:0 auto; padding:14px 16px 40px;}
+
+  .topbar{display:flex; align-items:center; gap:12px; padding:6px 4px 14px;}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; cursor:pointer;}
+  .brand:hover{opacity:.82;}
+  .brand:focus-visible{outline:3px solid var(--blue); outline-offset:3px; border-radius:10px;}
+  .brand .pi{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--blue),var(--teal)); color:#fff; font-size:20px; box-shadow:var(--shadow);}
+  .steps{margin-left:auto; display:flex; gap:8px;}
+  .steps .dot{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; color:var(--muted); cursor:pointer;
+    background:#fff; border:1px solid var(--line); padding:6px 10px; border-radius:999px;}
+  .steps .dot b{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#eef3f9;color:var(--muted);font-size:12px;}
+  .steps .dot.active{color:#fff; background:linear-gradient(135deg,var(--blue),var(--blue-d)); border-color:transparent;}
+  .steps .dot.active b{background:rgba(255,255,255,.25); color:#fff;}
+  .steps .dot.done b{background:var(--green); color:#fff;}
+
+  .screen{display:none; animation:fade .35s ease;}
+  .screen.show{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); padding:22px 22px 20px;}
+  h1.title{font-size:26px; margin:2px 0 6px; letter-spacing:-.5px;}
+  .lead{color:var(--muted); font-size:15px; line-height:1.6; margin:0 0 6px;}
+  .ask{font-size:18px; font-weight:800; color:var(--blue-d); background:#eaf3ff; border:1px dashed #b9d6f7;
+    padding:12px 16px; border-radius:14px; margin:12px 0;}
+  .ask .q{font-size:13px; color:var(--teal); font-weight:800; display:block; margin-bottom:2px; letter-spacing:.4px;}
+
+  .btn{appearance:none; border:none; cursor:pointer; font-family:inherit; font-weight:800; font-size:15px;
+    padding:12px 20px; border-radius:14px; color:#fff; background:linear-gradient(135deg,var(--blue),var(--blue-d));
+    box-shadow:0 6px 16px rgba(47,127,224,.35); transition:transform .08s, box-shadow .2s;}
+  .btn:active{transform:translateY(1px) scale(.99);}
+  .btn.ghost{background:#fff; color:var(--blue-d); border:1.5px solid var(--blue); box-shadow:none;}
+  .btn.warn{background:linear-gradient(135deg,var(--orange),#f2700f); box-shadow:0 6px 16px rgba(255,140,66,.4);}
+  .btn.lg{font-size:17px; padding:15px 28px; border-radius:16px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .spacer{flex:1}
+
+  .chips{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 4px;}
+  .chip{cursor:pointer; border:1.5px solid var(--line); background:#fff; border-radius:14px; padding:10px 14px;
+    display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; color:var(--ink); transition:.15s;}
+  .chip .ic{font-size:20px}
+  .chip small{color:var(--muted); font-weight:600}
+  .chip.sel{border-color:var(--blue); background:#eaf3ff; color:var(--blue-d); box-shadow:0 4px 12px rgba(47,127,224,.18);}
+
+  .stage{position:relative; background:linear-gradient(180deg,#fbfdff,#eef5fc); border:1px solid var(--line);
+    border-radius:18px; overflow:hidden; margin:14px 0;}
+  canvas{display:block; width:100%; height:auto;}
+
+  .readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:8px 0 2px;}
+  .ro{background:#f7fafe; border:1px solid var(--line); border-radius:14px; padding:10px 12px; text-align:center;}
+  .ro .k{font-size:12px; color:var(--muted); font-weight:700;}
+  .ro .v{font-size:22px; font-weight:900; letter-spacing:-.5px;}
+  .ro.hl{background:linear-gradient(135deg,#fff7e6,#fff1cf); border-color:#ffe08a;}
+  .ro.hl.flash{animation:ratioGlow 1.1s ease;}
+  .ro.hl .v{color:#e07b00}
+
+  table.log{width:100%; border-collapse:collapse; margin-top:10px; font-size:13.5px;}
+  table.log th,table.log td{border:1px solid var(--line); padding:7px 8px; text-align:center;}
+  table.log th{background:#eef5fc; color:var(--muted); font-weight:800;}
+  table.log td.pi{font-weight:900; color:var(--blue-d); transition:background .3s;}
+  table.log td.pi.flash{animation:ratioGlow 1.1s ease;}
+  @keyframes ratioGlow{0%{background:#fff7e6; transform:scale(1)}30%{background:#ffe08a; transform:scale(1.12)}100%{background:#fff7e6; transform:scale(1)}}
+  table.log.locked td.pi{background:#fff7e6; color:#e07b00;}
+
+  .m1hint{margin:10px 0 2px; padding:10px 14px; border-radius:13px; font-size:14px; line-height:1.55;
+    color:#0b8f63; background:linear-gradient(135deg,#e8fff4,#d7fbec); border:1px dashed #a9eccf; font-weight:700;}
+  .m1hint b{color:#0b8f63;}
+  .m1guess{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0 2px; padding:10px 14px; border-radius:13px; background:#fff7e6; border:1px dashed #ffd98a;}
+  .m1guess .glabel{font-weight:800; color:#e07b00; font-size:14.5px;}
+  .m1guess input{font-size:16px; font-weight:800; padding:8px 12px; border:1.5px solid #ffd98a; border-radius:10px; width:110px; text-align:right;}
+  .m1guess .gunit{font-weight:800; color:#e07b00;}
+  .m1guessfb{display:none; margin:8px 0 2px; padding:10px 14px; border-radius:12px; font-weight:800; font-size:14.5px;}
+  .m1guessfb.show{display:block; animation:pop .35s ease;}
+  .m1guessfb.good{background:#e8fff4; color:#0b8f63; border:1px solid #a9eccf;}
+  .m1guessfb.near{background:#eaf3ff; color:#1e5fb0; border:1px solid #b9d6f7;}
+
+  .insight{margin-top:12px; padding:13px 16px; border-radius:14px; font-weight:800; font-size:15.5px;
+    background:linear-gradient(135deg,#e8fff4,#d7fbec); color:#0b8f63; border:1px solid #a9eccf; display:none;}
+  .insight.show{display:block; animation:pop .4s ease;}
+  @keyframes pop{0%{transform:scale(.96);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+
+  .slider-wrap{display:flex; align-items:center; gap:14px; margin:6px 0 2px;}
+  input[type=range]{flex:1; height:8px; border-radius:8px; appearance:none; background:linear-gradient(90deg,var(--blue),var(--teal)); outline:none;}
+  input[type=range]::-webkit-slider-thumb{appearance:none; width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--blue); box-shadow:0 3px 8px rgba(0,0,0,.2); cursor:pointer;}
+  .pieces{font-weight:900; font-size:18px; min-width:92px; text-align:center; color:var(--blue-d);}
+
+
+  /* 미션 1 세 갈래 탭 */
+  .tabs{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 8px; background:#f2f7fd; border:1px solid var(--line); border-radius:16px; padding:6px;}
+  .tab{flex:1 1 210px; cursor:pointer; border:1.5px solid transparent; background:transparent; font-family:inherit;
+       font-weight:800; font-size:15px; color:var(--muted); padding:10px 12px; border-radius:12px; text-align:center; line-height:1.35;}
+  .tab small{display:block; font-size:11.5px; font-weight:700; color:var(--muted); margin-top:2px;}
+  .tab.sel{background:#fff; color:var(--blue-d); border-color:var(--blue); box-shadow:0 4px 12px rgba(47,127,224,.18);}
+  .tab.sel small{color:var(--teal);}
+  .pane{display:none;}
+  .pane.show{display:block; animation:fade .3s ease;}
+  /* 지름 갈래의 물음표 카드 */
+  .qcards{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:10px 0 2px;}
+  .qcard{background:linear-gradient(135deg,#fff7e6,#fff1cf); border:1px dashed #ffd98a; border-radius:14px; padding:12px 14px; text-align:center;}
+  .qcard .k{font-size:12.5px; color:#b25a00; font-weight:800;}
+  .qcard .v{font-size:26px; font-weight:900; color:#e07b00; letter-spacing:-.5px;}
+  .closing{display:grid; gap:12px; margin-top:8px;}
+  .closing .qbox{background:#eaf3ff; border:1px solid #b9d6f7; border-radius:14px; padding:14px 16px; font-weight:800; color:var(--blue-d); font-size:16px;}
+  .closing .qbox span{display:block; font-size:13px; color:var(--teal); margin-bottom:3px;}
+  .goal{background:linear-gradient(135deg,#fff,#f3f9ff); border:1px dashed var(--blue); border-radius:14px; padding:14px 16px; font-size:15px; line-height:1.6;}
+  /* 정리 확장 발문 — 지구를 감은 밧줄 */
+  .rope{background:linear-gradient(135deg,#fffdf7,#fff4e6); border:1px dashed var(--orange); border-radius:14px; padding:12px 16px;}
+  .rope summary{cursor:pointer; font-weight:800; color:#b25a00; font-size:16px; list-style:none;}
+  .rope summary::-webkit-details-marker{display:none;}
+  .rope summary::after{content:" ▾"; color:var(--orange);}
+  .rope[open] summary::after{content:" ▴";}
+  .rope .ropebody{margin-top:8px; font-size:15px; line-height:1.7; color:var(--ink);}
+  .rope .ropebody p{margin:6px 0;}
+  .rope .ropechoice{font-weight:800; color:var(--blue-d);}
+  .rope .ropesrc{margin:8px 0 0; padding:9px 12px; font-size:13.5px; line-height:1.62;
+  color:var(--muted); background:#fbfcfe; border:1px dashed var(--line); border-radius:10px;}
+.ropesrc b{color:var(--ink);}
+.ropecite{display:inline-block; margin-top:5px; font-size:12.5px; color:var(--muted); opacity:.85;}
+.ropeans{background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
+/* 밧줄 실측표 — 반지름·둘레·뜬 높이를 직접 견주어 보는 표 */
+.ropewrap{margin:8px 0 2px; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+.ropetbl{width:100%; min-width:430px; border-collapse:collapse; background:#fff; font-size:14px;}
+.ropetbl caption{caption-side:bottom; text-align:left; padding:6px 2px 0; font-size:12.5px; color:var(--muted); line-height:1.55;}
+.ropetbl th,.ropetbl td{border:1px solid var(--line); padding:7px 10px; text-align:right; white-space:nowrap;}
+.ropetbl th:first-child,.ropetbl td:first-child{text-align:left; white-space:normal;}
+.ropetbl thead th{background:#fff4e6; color:#b25a00; text-align:center; font-weight:800;}
+.ropetbl tbody th{color:var(--muted); font-weight:700;}
+.ropetbl tr.ropehi th,.ropetbl tr.ropehi td{background:#fff6f5; color:#c0392b; font-weight:800;}
+.ropetbl td small{font-weight:600; opacity:.8;}
+  .goal b{color:var(--blue-d)}
+  .summary{margin:4px 0 10px; display:grid; gap:8px;}
+  .summary .sline{background:#f3f9ff; border:1px solid #cfe2fb; border-radius:12px; padding:11px 14px; font-weight:800; color:var(--blue-d); font-size:15px;}
+  .summary .sline b{color:#0b8f63;}
+
+  .foot{display:flex; gap:10px; margin-top:16px; align-items:center; flex-wrap:wrap;}
+  .teacher{font-size:12.5px; color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:10px; padding:8px 11px; line-height:1.5;}
+  .teacher b{color:var(--teal)}
+
+  @media (max-width:560px){
+    .steps .dot span{display:none}
+    h1.title{font-size:22px}
+    .ro .v{font-size:18px}
+  }
+  /* 도움말 보이기/숨기기 토글 */
+  .tbtn{margin-left:8px; font-size:12.5px; font-weight:800; color:var(--muted); background:#fff;
+    border:1px solid var(--line); padding:6px 11px; border-radius:999px; cursor:pointer; font-family:inherit;
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition:.15s;}
+  .tbtn:active{transform:translateY(1px);}
+  .tbtn.off{color:#fff; background:linear-gradient(135deg,var(--teal),#0f9e8f); border-color:transparent;}
+  body.hide-teacher .teacher{display:none !important;}
+  @media (max-width:820px){
+    .app{max-width:720px;}
+    .steps .dot span{display:none}
+  }
+  @media (max-width:560px){
+    .app{padding:12px 12px 34px;}
+    .card{padding:18px 15px 16px; border-radius:18px;}
+    .topbar{flex-wrap:wrap; gap:8px; padding:6px 2px 12px;}
+    .brand{font-size:17px;}
+    .steps{gap:6px;}
+    .steps .dot{padding:6px 9px;}
+    h1.title{font-size:21px}
+    .lead{font-size:14px}
+    .ask{font-size:15.5px; padding:11px 13px;}
+    .readouts{gap:7px;}
+    .ro{padding:9px 8px;}
+    .ro .k{font-size:11px}
+    .ro .v{font-size:17px}
+    .btn{font-size:14px; padding:11px 15px;}
+    .btn.lg{font-size:16px; padding:14px 20px;}
+    .tbtn .tlab{display:none}
+    table.log th,table.log td{padding:6px 4px; font-size:12.5px;}
+  }
+  @media (max-width:380px){
+    .steps .dot b{width:18px;height:18px;font-size:11px;}
+    h1.title{font-size:19px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+    html{scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+<noscript><p style="padding:16px;font-weight:700;color:#1f2d3d">이 자료는 자바스크립트가 필요합니다. 브라우저에서 자바스크립트를 켜 주세요.</p></noscript>
+<div class="app">
+  <div class="topbar">
+    <div class="brand" role="button" tabindex="0" title="처음 화면으로 돌아가기"
+      aria-label="처음 화면으로 돌아가기" onclick="goIntro()"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goIntro();}"><div class="pi" aria-hidden="true">◯</div><div>원의 비밀</div></div>
+    <div class="steps" id="steps">
+      <div class="dot" data-i="0" role="button" tabindex="0" aria-label="미션 1 원의 특징으로 이동" title="미션 1로 이동" onclick="go(0)"><b>1</b><span>원의 특징</span></div>
+      <div class="dot" data-i="1" role="button" tabindex="0" aria-label="미션 2 원주율 발견으로 이동" title="미션 2로 이동" onclick="go(1)"><b>2</b><span>원주율 발견</span></div>
+      <div class="dot" data-i="2" role="button" tabindex="0" aria-label="미션 3 넓이 변신으로 이동" title="미션 3으로 이동" onclick="go(2)"><b>3</b><span>넓이 변신</span></div>
+    </div>
+    <button class="tbtn" id="fsBtn" type="button" aria-pressed="false" aria-label="글자와 화면 크게 보기"
+      title="글자·화면 크게 보기(저시력·전자칠판용)" onclick="cycleFont()">🔍 <span class="tlab">크게</span></button>
+    <button class="tbtn" id="teacherToggle" type="button" aria-pressed="false" aria-label="도움말 보이기 또는 숨기기"
+      title="도움말(💬) 보이기/숨기기" onclick="toggleTeacher()">💬 <span class="tlab">도움말</span></button>
+  </div>
+
+  <section class="screen show" id="s-intro">
+    <div class="card">
+      <h1 class="title">굴리고 펼쳐서 발견하는 원의 둘레와 넓이</h1>
+      <p class="lead">초등 6학년 2학기 「원의 둘레와 넓이」 도입 동기유발 · 약 5분 활동<br>직접 견주고, 굴리고, 잘라 보며 <b>원에 숨은 비밀</b>을 스스로 발견해요.</p>
+
+      <div class="ask"><span class="q">오늘의 질문</span>🛞 바퀴도, 🕳️ 맨홀 뚜껑도, 🪙 동전도 — 왜 하나같이 <u>원</u>일까요?</div>
+      <div class="stage"><canvas id="cHero" width="900" height="300" role="img" aria-label="수레바퀴와 맨홀 뚜껑과 100원짜리 동전이 바닥에 나란히 놓여 있고 셋 다 원 모양이다. 물체마다 위에 물음표가 떠 있다."></canvas></div>
+      <div class="introSteps" id="introSteps" style="margin-top:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:800;color:var(--blue-d);background:#f7fafe;border:1px solid var(--line);border-radius:14px;padding:10px 14px;"><span style="font-size:13px;color:var(--teal);font-weight:800;letter-spacing:.3px;">이렇게 진행돼요</span><span>① 견주기</span><span style="color:var(--muted)">→</span><span>② 굴리기</span><span style="color:var(--muted)">→</span><span>③ 자르기</span></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn lg" onclick="go(0)" aria-label="학습 시작하기">시작하기 →</button>
+        <span class="teacher">💬 <b>함께 해요</b> · 교실과 학교에서 본 원 모양 물건을 한 가지씩 말해 본 뒤 미션 1로 들어가요.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s1">
+    <div class="card">
+      <h1 class="title">미션 1 · 원은 어떤 도형일까?</h1>
+      <p class="lead">원에는 다른 도형에 없는 성질이 있어요. 세 가지를 차례로 확인해 봐요.</p>
+      <div class="tabs" id="m1tabs" role="tablist" aria-label="원의 특징 세 갈래">
+        <button class="tab sel" type="button" role="tab" id="tabWheel" aria-selected="true" aria-controls="pane-wheel" onclick="pickTab('wheel')">① 🛞 바퀴가 사각형이라면?<small>축이 지나간 자리 보기</small></button>
+        <button class="tab" type="button" role="tab" id="tabHole" aria-selected="false" aria-controls="pane-hole" onclick="pickTab('hole')">② 🕳️ 맨홀 뚜껑이 원인 까닭<small>돌려서 넣어 보기</small></button>
+        <button class="tab" type="button" role="tab" id="tabDia" aria-selected="false" aria-controls="pane-dia" onclick="pickTab('dia')">③ 📏 지름 하나면 충분<small>지름을 정해 보기</small></button>
+      </div>
+
+      <div class="pane show" id="pane-wheel" role="tabpanel" aria-labelledby="tabWheel">
+        <p class="lead">모양이 다른 바퀴를 단 수레를 굴려 보세요. <b>바퀴 축</b>이 지나간 자리를 눈으로 따라가 봐요.</p>
+        <div class="chips" id="m3chips"></div>
+        <div class="stage"><canvas id="c3" width="900" height="460" role="img" aria-label="삼각형·사각형·육각형·원 모양 바퀴를 단 수레를 굴리는 장면. 모서리가 있는 바퀴는 축이 위아래로 덜컹거리고 원 바퀴만 축 높이가 변하지 않는다."></canvas></div>
+        <div class="row" style="margin:2px 0 8px">
+          <button class="btn" id="m3roll" onclick="rollM3()" aria-label="고른 바퀴를 굴리기">🌀 굴리기</button>
+          <button class="btn ghost" id="m3cmp" onclick="toggleM3Mode()" aria-label="네 바퀴를 동시에 비교하기">🔬 네 바퀴 동시 비교</button>
+          <button class="btn ghost" onclick="resetM3()" aria-label="바퀴 활동 처음 상태로 되돌리기">↺ 다시</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" onclick="goIntro()" aria-label="처음 화면으로 돌아가기">← 처음 화면</button>
+          <button class="btn warn" onclick="pickTab('hole')" aria-label="두 번째 갈래 맨홀 뚜껑으로 이동">② 맨홀 뚜껑으로 →</button>
+        </div>
+        <div class="m1hint" id="m3hint">🛞 <b>바퀴를 골라 굴려 보세요.</b> 축이 지나간 자리가 선으로 남아요.</div>
+        <div class="insight" id="m3insight" role="status" aria-live="polite"></div>
+        <span class="teacher" style="display:inline-block;margin-top:10px">💬 <b>함께 생각해요</b> · 원 바퀴만 축의 높이가 변하지 않는 까닭은 무엇일까요?</span>
+      </div>
+
+      <div class="pane" id="pane-hole" role="tabpanel" aria-labelledby="tabHole">
+        <p class="lead">뚜껑을 <b>돌려</b> 가며 좌우 폭을 재 보세요. 폭이 좁아지는 방향이 있으면 그쪽으로 세워 구멍에 빠뜨릴 수 있어요.</p>
+        <div class="chips" id="mhchips"></div>
+        <div class="stage"><canvas id="cMh" width="900" height="640" role="img" aria-label="삼각형·사각형·육각형·원 모양 맨홀 뚜껑을 돌려 가며 좌우 폭을 재고 구멍에 넣어 보는 장면. 위 왼쪽은 위에서 본 뚜껑과 폭을 재는 주황 자, 위 오른쪽은 옆에서 본 단면, 아래는 비스듬히 내려다보며 세운 뚜껑을 구멍에 떨어뜨리는 장면이다. 원 뚜껑은 어느 각도에서도 폭이 같아 빠지지 않는다."></canvas></div>
+        <div class="slider-wrap">
+          <span style="font-weight:800;color:var(--muted)">돌린 각도</span>
+          <input type="range" id="mhAng" min="0" max="180" step="1" value="0" oninput="onMhAngle()" aria-label="뚜껑을 돌린 각도(도)">
+          <span class="pieces"><span id="mhAngN">0</span>°</span>
+        </div>
+        <div class="readouts">
+          <div class="ro hl"><div class="k">지금 이 방향의 폭</div><div class="v"><span id="mhNow">–</span></div></div>
+          <div class="ro"><div class="k">가장 좁아질 때</div><div class="v"><span id="mhMin">–</span></div></div>
+          <div class="ro"><div class="k">구멍의 가장 넓은 곳</div><div class="v"><span id="mhHole">–</span></div></div>
+        </div>
+        <div class="row" style="margin:8px 0 2px">
+          <button class="btn" id="mhDrop" onclick="dropLid()" aria-label="지금 각도로 뚜껑을 구멍에 넣어 보기">🕳️ 지금 각도로 넣어 보기</button>
+          <button class="btn ghost" onclick="resetMh()" aria-label="맨홀 활동 처음 상태로 되돌리기">↺ 다시</button>
+          <span class="spacer"></span>
+          <button class="btn ghost" onclick="pickTab('wheel')" aria-label="첫 번째 갈래 바퀴로 돌아가기">← ① 바퀴</button>
+          <button class="btn warn" onclick="pickTab('dia')" aria-label="세 번째 갈래 지름으로 이동">③ 지름 하나면 →</button>
+        </div>
+        <div class="m1hint" id="mhHint">🔄 <b>각도를 돌려 보세요.</b> 폭이 어떻게 달라지는지 숫자로 볼 수 있어요.</div>
+        <div class="insight" id="mhInsight" role="status" aria-live="polite"></div>
+        <span class="teacher" style="display:inline-block;margin-top:10px">💬 <b>함께 생각해요</b> · 네 모양 가운데 폭이 한 번도 좁아지지 않은 것은 무엇이었나요?</span>
+      </div>
+
+      <div class="pane" id="pane-dia" role="tabpanel" aria-labelledby="tabDia">
+        <p class="lead">지름을 정하면 원은 <b>딱 하나</b>로 정해져요. 그럼 둘레와 넓이는 어떻게 될까요?</p>
+        <div class="stage"><canvas id="cDia" width="900" height="380" role="img" aria-label="지름을 바꾸면 원의 크기가 함께 바뀌는 장면. 여러 방향으로 그은 지름의 길이가 모두 같고, 둘레와 넓이 자리에는 물음표가 남아 있다."></canvas></div>
+        <div class="slider-wrap">
+          <span style="font-weight:800;color:var(--muted)">지름</span>
+          <input type="range" id="diaR" min="4" max="20" step="1" value="10" oninput="drawDia()" aria-label="원의 지름(센티미터)">
+          <span class="pieces"><span id="diaN">10</span>cm</span>
+        </div>
+        <div class="qcards">
+          <div class="qcard"><div class="k">이 원의 둘레는?</div><div class="v" id="diaC">? cm</div></div>
+          <div class="qcard"><div class="k">이 원의 넓이는?</div><div class="v" id="diaA">? cm²</div></div>
+        </div>
+        <div class="insight show" id="diaInsight">바퀴 축이 흔들리지 않은 것도, 원 뚜껑이 빠지지 않은 것도 모두 <b>원의 폭(지름)이 어느 방향에서나 같기</b> 때문이었어요.<br>그래서 원은 <b>지름 하나만 정하면</b> 모양이 완전히 정해져요. 그렇다면 <b>둘레</b>와 <b>넓이</b>도 이미 정해진 셈인데 — 얼마일까요? 🤔</div>
+        <div class="row" style="margin-top:12px">
+          <span class="teacher">💬 <b>함께 생각해요</b> · 지름을 두 배로 늘리면 둘레도 두 배가 될까요?</span>
+          <span class="spacer"></span>
+          <button class="btn ghost" onclick="pickTab('hole')" aria-label="두 번째 갈래 맨홀 뚜껑으로 돌아가기">← ② 맨홀 뚜껑</button>
+          <button class="btn warn" onclick="go(1)" aria-label="미션 2로 이동">🌀 둘레부터 알아보러 가기 →</button>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span class="teacher">💬 <b>정리해요</b> · 세 갈래 모두 원의 어떤 점 하나에서 나왔을까요?</span>
+        <span class="spacer"></span>
+        <button class="btn ghost" onclick="goIntro()" aria-label="처음 화면으로 돌아가기">← 처음 화면</button>
+        <button class="btn warn" onclick="go(1)" aria-label="미션 2로 이동">다음 미션 →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s2">
+    <div class="card">
+      <h1 class="title">미션 2 · 원주율의 발견</h1>
+      <p class="lead">물체를 골라 <b>굴려</b> 보세요. 둘레가 직선으로 펼쳐지고 <b>(둘레 ÷ 지름)</b>이 나타나요.</p>
+      <div class="chips" id="m1chips"></div>
+      <div class="m1guess" id="m1customWrap" style="display:none">
+        <span class="glabel">✏️ 원의 지름을 직접 정해 보세요</span>
+        <input type="number" id="m1custom" inputmode="decimal" placeholder="예: 20" value="20" min="1" aria-label="내가 정한 원의 지름(cm)">
+        <span class="gunit">cm</span>
+      </div>
+      <div class="stage"><canvas id="c1" width="900" height="340" role="img" aria-label="크기가 다른 원을 굴려 둘레를 직선으로 펼치고, 둘레 ÷ 지름 값이 약 3.14로 일정해지는 장면"></canvas></div>
+      <div class="m1guess">
+        <span class="glabel">🤔 굴리기 전에 예상! 한 바퀴 굴러간 거리는?</span>
+        <input type="number" id="m1guess" inputmode="decimal" placeholder="예상값" aria-label="한 바퀴 굴러간 거리 예상값(cm)">
+        <span class="gunit">cm</span>
+      </div>
+      <div class="m1guessfb" id="m1guessfb" role="status" aria-live="polite"></div>
+      <div class="row">
+        <button class="btn" id="rollBtn" aria-label="원을 굴려 둘레 재기" onclick="rollM1()">🌀 굴리기</button>
+        <button class="btn ghost" aria-label="미션 1 다시 굴리기" onclick="resetM1()">↺ 다시</button>
+        <span class="spacer"></span>
+      </div>
+      <div class="m1hint" id="m1hint">🔁 <b>다른 물체로도 굴려 보세요!</b> 🪙 동전부터 🚲 자전거 바퀴까지 — 크기가 달라도 결과가 어떻게 되는지 비교해 봐요.</div>
+      <div class="readouts">
+        <div class="ro"><div class="k">지름</div><div class="v"><span id="m1d">–</span></div></div>
+        <div class="ro"><div class="k">둘레(굴러간 거리)</div><div class="v"><span id="m1c">–</span></div></div>
+        <div class="ro hl"><div class="k">둘레 ÷ 지름</div><div class="v"><span id="m1r">–</span></div></div>
+      </div>
+      <table class="log" id="m1log">
+        <thead><tr><th>물체</th><th>지름</th><th>둘레</th><th>둘레 ÷ 지름</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="insight" id="m1insight" role="status" aria-live="polite">✨ 발견! 원의 크기가 달라도 <u>둘레 ÷ 지름</u>은 항상 <b>약 3.14</b>. 이 일정한 값을 <b>원주율</b>이라고 해요. <span style="font-weight:600">(원주율은 3.1415…로 끝없이 이어져, 6학년에서는 <b>약 3.14</b>로 약속해요.)</span></div>
+      <div class="foot">
+        <span class="teacher">💬 <b>함께 생각해요</b> · 원이 커지면 둘레와 지름의 관계도 달라질까요?</span>
+        <span class="spacer"></span>
+        <button class="btn ghost" onclick="go(0)" aria-label="미션 1로 돌아가기">← 미션 1</button>
+        <button class="btn warn" onclick="go(2)" aria-label="미션 3으로 이동">다음 미션 →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s3">
+    <div class="card">
+      <h1 class="title">미션 3 · 원의 넓이 변신</h1>
+      <p class="lead">원을 부채꼴로 <b>잘게 잘라</b> 옆으로 옮겨 보세요. 원 위의 조각을 <b>하나씩 눌러</b> 옮길 수 있어요.</p>
+      <div class="stage"><canvas id="c2" width="900" height="360" role="img" aria-label="원을 부채꼴 조각으로 잘라 오른쪽으로 하나씩 옮겨 직사각형을 만드는 장면. 조각을 옮길 때마다 가로 길이가 늘어나고 세로 길이는 그대로다."></canvas></div>
+      <div class="row" style="margin:2px 0 8px">
+        <button class="btn" id="m2oneBtn" aria-label="조각을 하나 옮기기" onclick="moveOnePiece()">✋ 조각 하나 옮기기</button>
+        <button class="btn ghost" id="m2morphBtn" aria-label="남은 조각을 한꺼번에 펼치기" onclick="toggleMorph()">✨ 한꺼번에 펼치기 ▶</button>
+        <button class="btn ghost" aria-label="조각을 다시 원으로 모으기" onclick="resetM2()">↺ 원으로 모으기</button>
+        <span class="spacer"></span>
+      </div>
+      <div class="slider-wrap">
+        <span style="font-weight:800;color:var(--muted)">조각 수</span>
+        <input type="range" id="pcs" min="6" max="144" step="2" value="8" oninput="drawM2()" aria-label="부채꼴 조각 수 조절">
+        <span class="pieces"><span id="pcsN">8</span>조각</span>
+      </div>
+      <div class="readouts" style="grid-template-columns:repeat(2,1fr)">
+        <div class="ro" style="border-color:#ffd0ac;background:#fff6ee"><div class="k" style="color:#e07b00">━ 가로</div><div class="v" id="m2rw" style="color:#e07b00">–</div></div>
+        <div class="ro" style="border-color:#bdeee7;background:#eefbf9"><div class="k" style="color:#0f9e8f">┃ 세로</div><div class="v" id="m2rh" style="color:#0f9e8f">–</div></div>
+      </div>
+      <div class="insight show" id="m2insight">조각을 늘릴수록 <b>직사각형</b>에 가까워져요! 그럼 이 직사각형의 <b>가로</b>와 <b>세로</b>는 각각 원의 어디일까요?</div>
+      <div id="m2near" role="status" aria-live="polite" style="margin-top:8px;font-weight:800;font-size:14.5px"></div>
+      <div class="foot">
+        <span class="teacher">💬 <b>함께 생각해요</b> · 곡선으로 둘러싸인 넓이는 어떻게 잴 수 있을까요?</span>
+        <span class="spacer"></span>
+        <button class="btn ghost" onclick="go(1)" aria-label="미션 2로 돌아가기">← 미션 2</button>
+        <button class="btn warn" id="toClose" onclick="go(3)" aria-label="정리 단계로 이동하기">정리하기 →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s4">
+    <div class="card">
+      <h1 class="title">🎉 오늘의 발견 정리</h1>
+      <div class="summary" id="cSummary" role="status" aria-live="polite"></div>
+      <div class="stage"><canvas id="cSum" width="900" height="250" role="img" aria-label="오늘 발견한 세 가지를 그림으로 요약한 장면. ① 원은 어느 방향으로 재도 폭이 같다, ② 크기가 달라도 둘레를 지름으로 나눈 값이 늘 같다, ③ 원을 잘라 옮기면 직사각형이 된다."></canvas></div>
+      <div class="closing">
+        <div class="qbox"><span>되돌아보기 ①</span>원은 왜 어느 방향으로 재도 폭이 같을까요? 그래서 무엇이 편리했나요?</div>
+        <div class="qbox"><span>되돌아보기 ②</span>원의 크기가 달라도 <u>둘레 ÷ 지름</u>이 늘 같았던 까닭은 무엇일까요?</div>
+        <div class="qbox"><span>되돌아보기 ③</span>조각을 옮겨 만든 직사각형의 가로와 세로는 원의 어디일까요?</div>
+        <div class="goal">📌 <b>이제 수업에서 알아볼 것</b><br>· 지름만 알면 <b>둘레</b>를 정말 구할 수 있을까? 어떻게?<br>· 곡선으로 둘러싸인 <b>넓이</b>는 어떻게 재야 할까?<br><span style="font-size:13px;color:var(--muted)">※ 오늘은 여기까지 — 답은 이어지는 수업에서 직접 찾아봐요.</span></div>
+        <details class="rope" ontoggle="drawRope()">
+          <summary>🌍 수업을 마친 뒤 열어 보기 · 지구를 감은 밧줄</summary>
+          <div class="ropebody">
+            <p>지구 적도를 <b>딱 맞게</b> 한 바퀴 감은 밧줄이 있어요(약 40,000km). 이 밧줄에 <b>1m만</b> 더 이어 붙인 뒤,
+            지면에서 어디나 똑같은 높이로 띄운다면 얼마나 뜰까요?</p>
+            <p class="ropechoice">① 종이 한 장 두께 &nbsp;·&nbsp; ② 개미가 지나갈 틈 &nbsp;·&nbsp; ③ 강아지가 지나갈 틈</p>
+            <div class="stage"><canvas id="cRope" width="900" height="400" role="img" aria-label="자전거 바퀴와 지구에 각각 밧줄을 딱 맞게 감은 그림. 둘레는 자전거 바퀴가 약 2.07미터, 지구가 약 40,000킬로미터 로 크게 다르지만, 두 밧줄에 똑같이 1미터를 더 이어 붙이면 반지름이 둘 다 0.1592미터 늘어나 뜨는 틈의 높이가 약 16센티미터로 같아진다. 두 원의 크기와 틈은 눈에 보이도록 크게 부풀려 그렸다."></canvas></div>
+            <div class="row" style="margin:6px 0 10px">
+              <button class="btn" id="ropeBtn" onclick="animRope()" aria-label="두 밧줄에 각각 1미터를 더 이어 붙이기">🪢 밧줄에 1m 더 잇기</button>
+              <button class="btn ghost" onclick="resetRope()" aria-label="밧줄을 처음 상태로 되돌리기">↺ 다시</button>
+            </div>
+            <div class="ropewrap" aria-live="polite">
+              <table class="ropetbl" id="ropeTbl">
+                <caption>※ 원주율을 3.14로 두고 재어 본 값이에요. 지구는 둘레를 딱 40,000km로 보았어요. 물음표 자리는 ‘밧줄에 1m 더 잇기’를 누르면 채워져요.</caption>
+                <thead><tr><th scope="col">재어 본 것</th><th scope="col">🚲 자전거 바퀴</th><th scope="col">🌍 지구</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">처음 둘레</th><td>2.0724 m</td><td>40,000,000 m</td></tr>
+                  <tr><th scope="row">처음 반지름</th><td>0.3300 m</td><td>6,369,426.7516 m</td></tr>
+                  <tr><th scope="row">1m 이은 뒤 둘레</th><td data-v="3.0724 m">?</td><td data-v="40,000,001 m">?</td></tr>
+                  <tr><th scope="row">1m 이은 뒤 반지름</th><td data-v="0.4892 m">?</td><td data-v="6,369,426.9108 m">?</td></tr>
+                  <tr class="ropehi"><th scope="row">뜬 높이 <small>(반지름의 차)</small></th><td data-v="0.1592 m">?</td><td data-v="0.1592 m">?</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="ropeans">👉 답은 <b>③ 약 16cm</b> — 강아지가 지나갑니다!<br>
+            둘레가 1m 늘면 지름은 <b>1 ÷ 3.14 ≈ 0.32m</b> 늘고, 뜨는 높이는 그 절반인 <b>약 16cm</b>예요.
+            놀랍게도 이 답은 <b>지구든 자전거 바퀴든 똑같아요.</b> 둘레와 지름을 잇는 것이 언제나 <b>약 3.14</b>이기 때문이에요.<br>
+            표를 보면 반지름이 <b>0.3300m</b>인 바퀴도, <b>6,369,426.7516m</b>인 지구도 1m를 이으면 반지름이 나란히
+            <b>0.1592m</b>씩 늘어요. 처음 반지름이 <b>2천만 배</b> 가까이 차이 나는데도 늘어난 양은 소수점 아래까지 똑같지요.</p>
+            <p class="ropesrc">📜 이 문제는 <b>1702년</b> 영국의 수학자 <b>윌리엄 휘스턴</b>(William Whiston, 1667~1752)이
+            자신의 유클리드 『원론』 책에 처음 실은 것으로 알려져 있어요. 휘스턴은 뉴턴의 뒤를 이어
+            케임브리지 대학의 수학 교수를 지낸 사람이에요. 300년이 넘도록 많은 사람을 놀라게 해 온 문제랍니다.
+            <br><span class="ropecite">출처: EBS Math · Wikipedia, String girdling Earth</span></p>
+          </div>
+        </details>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost" onclick="go(0)" aria-label="미션 1 다시 학습하기">미션 1 다시</button>
+        <button class="btn ghost" onclick="go(1)" aria-label="미션 2 다시 학습하기">미션 2 다시</button>
+        <button class="btn ghost" onclick="go(2)" aria-label="미션 3 다시 학습하기">미션 3 다시</button>
+      </div>
+      <div class="foot">
+        <span class="teacher">💬 <b>다음은</b> · 오늘 발견한 비밀을 이제 수업에서 자세히 알아봐요.</span>
+        <span class="spacer"></span>
+        <button class="btn ghost" onclick="goIntro()" aria-label="처음 화면부터 다시 시작하기">처음부터 ↺</button>
+        <button class="btn ghost" id="printBtn" onclick="window.print()" aria-label="현재 학습 결과 인쇄하기">인쇄 🖨️</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    var t=(typeof r==='number')?r:(r&&r[0])||0;
+    this.moveTo(x+t,y); this.arcTo(x+w,y,x+w,y+h,t); this.arcTo(x+w,y+h,x,y+h,t);
+    this.arcTo(x,y+h,x,y,t); this.arcTo(x,y,x+w,y,t); this.closePath(); return this;
+  };
+}
+const PI = 3.14;
+/* 글자·화면 크게 보기 토글(접근성) */
+let fsLevel=0; const fsZooms=[1,1.15,1.3];
+function cycleFont(){
+  fsLevel=(fsLevel+1)%fsZooms.length;
+  const z=fsZooms[fsLevel], app=document.querySelector(".app");
+  if(app) app.style.zoom=z;
+  const b=document.getElementById("fsBtn");
+  if(b){ const lab=b.querySelector(".tlab"); if(lab) lab.textContent = (z===1?"크게":"×"+z);
+    b.classList.toggle("off", z!==1); b.setAttribute("aria-pressed", z!==1?"true":"false"); }
+}
+/* 도움말(💬) 보이기/숨기기 토글 */
+function toggleTeacher(){
+  const hidden=document.body.classList.toggle("hide-teacher");
+  const b=document.getElementById("teacherToggle");
+  if(b){
+    b.classList.toggle("off", hidden);
+    b.setAttribute("aria-pressed", hidden?"true":"false");
+    const lab=b.querySelector(".tlab");
+    if(lab) lab.textContent = hidden ? "도움말 숨김" : "도움말";
+  }
+}
+function setStep(i){
+  document.querySelectorAll("#steps .dot").forEach(d=>{
+    const di=+d.dataset.i; const isActive=di===i && i<3; d.classList.toggle("active", isActive);
+    d.classList.toggle("done", di<i);
+    if(isActive){ d.setAttribute("aria-current","step"); } else { d.removeAttribute("aria-current"); }
+  });
+}
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function goIntro(){ show("s-intro"); setStep(-1); playHero(); }
+
+/* ===== 도입 화면의 그림 =====
+   오늘의 질문(바퀴·맨홀 뚜껑·동전은 왜 모두 원일까)을 글이 아니라 그림으로 먼저 보여 준다.
+   답은 주지 않는다 — 세 물체를 나란히 놓고 물음표만 띄운다.
+   들어올 때 한 번만 움직인다(바퀴가 굴러 들어오고, 뚜껑과 동전이 놓이고, 물음표가 뜬다). */
+const HERO={ t:1, anim:null, baseY:236,
+  cx:[196,450,706], r:[74,74,58],
+  DUR:2600 };
+function heroCtx(){ const c=document.getElementById("cHero"); return c?c.getContext("2d"):null; }
+function easeOut(k){ return 1-(1-k)*(1-k); }
+function heroShadow(g,cx,r,al){
+  g.save(); g.globalAlpha=0.18*al; g.fillStyle="#2b3a4a";
+  g.beginPath(); g.ellipse(cx, HERO.baseY+9, r*0.92, r*0.16, 0, 0, 7); g.fill(); g.restore();
+}
+/* 수레바퀴 — 타이어·림·바큇살·축 */
+function drawHeroWheel(g,cx,cy,r,rot){
+  g.save(); g.translate(cx,cy); g.rotate(rot);
+  g.lineCap="round";
+  g.beginPath(); g.arc(0,0,r*0.90,0,7);
+  g.strokeStyle="#3a4a5a"; g.lineWidth=r*0.20; g.stroke();
+  g.beginPath(); g.arc(0,0,r*0.74,0,7);
+  g.strokeStyle="#8aa0b6"; g.lineWidth=3; g.stroke();
+  g.strokeStyle="#6b7b8c"; g.lineWidth=r*0.055;
+  for(let i=0;i<8;i++){
+    const th=i*Math.PI/4;
+    g.beginPath(); g.moveTo(Math.cos(th)*r*0.16, Math.sin(th)*r*0.16);
+    g.lineTo(Math.cos(th)*r*0.72, Math.sin(th)*r*0.72); g.stroke();
+  }
+  g.beginPath(); g.arc(0,0,r*0.17,0,7); g.fillStyle="#2b3a4a"; g.fill();
+  g.beginPath(); g.arc(0,0,r*0.07,0,7); g.fillStyle="#dfe8f2"; g.fill();
+  g.restore();
+}
+/* 맨홀 뚜껑 — 위에서 본 원판 */
+function drawHeroLid(g,cx,cy,r){
+  g.save(); g.translate(cx,cy);
+  g.beginPath(); g.arc(0,0,r,0,7); g.fillStyle="#c3ced9"; g.fill();
+  g.strokeStyle="#6b7b8c"; g.lineWidth=4; g.stroke();
+  g.beginPath(); g.arc(0,0,r*0.86,0,7); g.strokeStyle="#93a3b4"; g.lineWidth=2.5; g.stroke();
+  g.strokeStyle="#a8b6c4"; g.lineWidth=2.5;
+  for(let i=0;i<12;i++){
+    const th=i*Math.PI/6;
+    g.beginPath(); g.moveTo(Math.cos(th)*r*0.22, Math.sin(th)*r*0.22);
+    g.lineTo(Math.cos(th)*r*0.80, Math.sin(th)*r*0.80); g.stroke();
+  }
+  g.beginPath(); g.arc(0,0,r*0.44,0,7); g.strokeStyle="#93a3b4"; g.lineWidth=2.5; g.stroke();
+  g.beginPath(); g.arc(0,0,r*0.16,0,7); g.fillStyle="#93a3b4"; g.fill();
+  g.restore();
+}
+/* 100원짜리 동전 */
+function drawHeroCoin(g,cx,cy,r){
+  g.save(); g.translate(cx,cy);
+  g.beginPath(); g.arc(0,0,r,0,7); g.fillStyle="#e8bf52"; g.fill();
+  g.strokeStyle="#a9801a"; g.lineWidth=3.5; g.stroke();
+  g.beginPath(); g.arc(0,0,r*0.80,0,7); g.strokeStyle="#c9a03a"; g.lineWidth=2.5; g.stroke();
+  g.fillStyle="#7a5c00"; g.textAlign="center"; g.textBaseline="middle";
+  g.font="900 "+Math.round(r*0.62)+"px sans-serif"; g.fillText("100", 0, r*0.02);
+  g.textBaseline="alphabetic"; g.restore();
+}
+function drawHeroQ(g,cx,cy,k){
+  if(k<=0) return;
+  g.save(); g.translate(cx,cy);
+  const s=0.6+0.4*easeOut(Math.min(1,k*1.4));
+  g.scale(s,s); g.globalAlpha=Math.min(1,k*2);
+  g.beginPath(); g.arc(0,0,20,0,7); g.fillStyle="#eaf3ff"; g.fill();
+  g.strokeStyle="#2f7fe0"; g.lineWidth=2.5; g.stroke();
+  g.fillStyle="#1e5fb0"; g.font="900 24px sans-serif"; g.textAlign="center"; g.textBaseline="middle";
+  g.fillText("?",0,1); g.textBaseline="alphabetic";
+  g.restore();
+}
+function drawHero(){
+  const g=heroCtx(); if(!g) return;
+  const t=HERO.t, W=900, H=300, by=HERO.baseY;
+  g.clearRect(0,0,W,H);
+  /* 바닥 */
+  g.beginPath(); g.moveTo(40,by+10); g.lineTo(860,by+10);
+  g.strokeStyle="#c9d8e8"; g.lineWidth=3; g.stroke();
+  /* ① 바퀴 — 왼쪽에서 굴러 들어온다 */
+  {
+    const k=easeOut(Math.min(1,t/0.40)), r=HERO.r[0];
+    const x=-90+(HERO.cx[0]+90)*k, rot=(x+90)/r;
+    heroShadow(g,x,r,k);
+    drawHeroWheel(g,x,by-r,r,rot);
+  }
+  /* ② 맨홀 뚜껑 — 위에서 내려와 놓인다 */
+  if(t>0.25){
+    const k=easeOut(Math.min(1,(t-0.25)/0.30)), r=HERO.r[1];
+    g.save(); g.globalAlpha=k;
+    heroShadow(g,HERO.cx[1],r,k);
+    drawHeroLid(g,HERO.cx[1], by-r-(1-k)*60, r);
+    g.restore();
+  }
+  /* ③ 동전 */
+  if(t>0.40){
+    const k=easeOut(Math.min(1,(t-0.40)/0.28)), r=HERO.r[2];
+    g.save(); g.globalAlpha=k;
+    heroShadow(g,HERO.cx[2],r,k);
+    drawHeroCoin(g,HERO.cx[2], by-r-(1-k)*60, r);
+    g.restore();
+  }
+  /* 이름표 */
+  const names=["바퀴","맨홀 뚜껑","100원짜리 동전"];
+  g.textAlign="center"; g.font="bold 15px sans-serif"; g.fillStyle="#5b6b7d";
+  names.forEach(function(nm,i){
+    const st=[0.30,0.48,0.60][i];
+    if(t>st){ g.save(); g.globalAlpha=Math.min(1,(t-st)/0.15); g.fillText(nm, HERO.cx[i], by+34); g.restore(); }
+  });
+  /* 물음표 — 셋이 차례로 뜬다 */
+  [0.70,0.80,0.90].forEach(function(st,i){
+    drawHeroQ(g, HERO.cx[i], by-HERO.r[i]*2-22, (t-st)/0.10);
+  });
+  /* 마무리 문구 */
+  if(t>0.96){
+    g.save(); g.globalAlpha=Math.min(1,(t-0.96)/0.04);
+    g.textAlign="center"; g.font="900 17px sans-serif"; g.fillStyle="#1e5fb0";
+    g.fillText("셋 다 원이에요 — 왜 그럴까요?", 450, 26);
+    g.restore();
+  }
+}
+function playHero(){
+  if(!heroCtx()) return;
+  if(HERO.anim){ cancelAnimationFrame(HERO.anim); HERO.anim=null; }
+  HERO.t=0;
+  const t0=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+  (function step(now){
+    HERO.t=Math.min(1,(now-t0)/HERO.DUR);
+    drawHero();
+    if(HERO.t<1) HERO.anim=requestAnimationFrame(step);
+    else{ HERO.anim=null; HERO.t=1; drawHero(); }
+  })(t0);
+}
+function go(stage){
+  if(stage===0){show("s1"); setStep(0); pickTab("wheel");}
+  if(stage===1){show("s2"); setStep(1); resetM1();}
+  if(stage===2){show("s3"); setStep(2); m2ResetAll(); drawM2(); updateMorphBtn();}
+  if(stage===3){show("s4"); setStep(3); buildSummary(); drawSum(); resetRope();}
+}
+
+/* 미션 1 — 세 갈래 탭 */
+const M1T={cur:"wheel"};
+const M1_TABS=[["wheel","tabWheel","pane-wheel"],["hole","tabHole","pane-hole"],["dia","tabDia","pane-dia"]];
+function pickTab(k){
+  M1T.cur=k;
+  M1_TABS.forEach(function(a){
+    const on=(a[0]===k), t=document.getElementById(a[1]), p=document.getElementById(a[2]);
+    if(t){ t.classList.toggle("sel",on); t.setAttribute("aria-selected", on?"true":"false"); }
+    if(p) p.classList.toggle("show",on);
+  });
+  if(k==="wheel") resetM3();
+  else if(k==="hole") resetMh();
+  else if(k==="dia") drawDia();
+}
+
+/* MISSION 1 */
+/* 물체별 그리기 — 중심(0,0)에 반지름 R로 그린다. 호출부에서 이미 회전이 적용되므로
+   그림 안의 방향 표식(동전 숫자·컵 무늬·접시 점·바퀴 살)이 함께 돌아 회전이 보인다. */
+function drawCoin(g,R){                                   /* 100원 동전 */
+  const gr=g.createRadialGradient(-R*0.3,-R*0.35,R*0.12,0,0,R);
+  gr.addColorStop(0,"#fdf7e6"); gr.addColorStop(.45,"#dccdaa"); gr.addColorStop(1,"#a89168");
+  g.fillStyle=gr; g.beginPath(); g.arc(0,0,R,0,7); g.fill();
+  g.strokeStyle="#8a7550"; g.lineWidth=4; g.stroke();
+  g.strokeStyle="rgba(120,100,60,.55)"; g.lineWidth=2;    /* 가장자리 톱니 */
+  for(let k=0;k<36;k++){ const a=k*Math.PI/18;
+    g.beginPath(); g.moveTo(Math.cos(a)*(R-5),Math.sin(a)*(R-5)); g.lineTo(Math.cos(a)*R,Math.sin(a)*R); g.stroke(); }
+  g.strokeStyle="#bfa877"; g.lineWidth=2; g.beginPath(); g.arc(0,0,R-11,0,7); g.stroke();
+  g.fillStyle="#6b5a38"; g.font="bold 26px sans-serif"; g.textAlign="center"; g.textBaseline="middle";
+  g.fillText("100",0,1); g.textBaseline="alphabetic";
+}
+function drawCupTop(g,R){                                 /* 위에서 내려다본 컵 */
+  g.fillStyle="#e7eef7"; g.beginPath(); g.arc(0,0,R,0,7); g.fill();
+  g.strokeStyle="#9fb6cd"; g.lineWidth=4; g.stroke();
+  g.fillStyle="#f7fbff"; g.beginPath(); g.arc(0,0,R-11,0,7); g.fill();
+  g.strokeStyle="#c3d4e6"; g.lineWidth=2; g.stroke();
+  g.fillStyle="#dbe7f5"; g.beginPath(); g.arc(0,0,R*0.42,0,7); g.fill();
+  g.strokeStyle="#aac2da"; g.lineWidth=2; g.stroke();
+  g.strokeStyle="#7fb2e8"; g.lineWidth=4; g.lineCap="round";   /* 컵 무늬(회전 표식) */
+  for(let k=0;k<3;k++){ const a=-Math.PI/2+k*2*Math.PI/3;
+    g.beginPath(); g.moveTo(Math.cos(a)*(R*0.52),Math.sin(a)*(R*0.52));
+    g.lineTo(Math.cos(a)*(R-14),Math.sin(a)*(R-14)); g.stroke(); }
+}
+function drawPlate(g,R){                                  /* 흰 접시 */
+  const gr=g.createRadialGradient(-R*0.3,-R*0.35,R*0.1,0,0,R);
+  gr.addColorStop(0,"#ffffff"); gr.addColorStop(1,"#e2e9f0");
+  g.fillStyle=gr; g.beginPath(); g.arc(0,0,R,0,7); g.fill();
+  g.strokeStyle="#c2ccd6"; g.lineWidth=3; g.stroke();
+  g.strokeStyle="#dfe6ee"; g.lineWidth=2; g.beginPath(); g.arc(0,0,R-7,0,7); g.stroke();
+  g.fillStyle="#f7fafd"; g.beginPath(); g.arc(0,0,R-19,0,7); g.fill();
+  g.strokeStyle="#ccd6e0"; g.lineWidth=2; g.stroke();
+  g.fillStyle="#4a90d9";                                  /* 테 무늬 점(회전 표식) */
+  for(let k=0;k<8;k++){ const a=k*Math.PI/4;
+    g.beginPath(); g.arc(Math.cos(a)*(R-13),Math.sin(a)*(R-13),3.4,0,7); g.fill(); }
+  g.fillStyle="#9ec6ea"; g.beginPath(); g.arc(0,0,6,0,7); g.fill();
+}
+function drawWheel(g,R){                                  /* 자전거 바퀴 */
+  g.strokeStyle="#2b2f36"; g.lineWidth=13; g.beginPath(); g.arc(0,0,R-6,0,7); g.stroke();
+  g.strokeStyle="#4a5058"; g.lineWidth=2;  g.beginPath(); g.arc(0,0,R-1,0,7); g.stroke();
+  g.strokeStyle="#c9d3dd"; g.lineWidth=4;  g.beginPath(); g.arc(0,0,R-15,0,7); g.stroke();
+  g.strokeStyle="#aab6c2"; g.lineWidth=1.6;               /* 가는 살(회전 표식) */
+  for(let k=0;k<16;k++){ const a=k*Math.PI/8;
+    g.beginPath(); g.moveTo(Math.cos(a)*7,Math.sin(a)*7);
+    g.lineTo(Math.cos(a)*(R-16),Math.sin(a)*(R-16)); g.stroke(); }
+  g.fillStyle="#6b7580"; g.beginPath(); g.arc(0,0,8,0,7); g.fill();
+  g.fillStyle="#ff8c42"; g.beginPath(); g.arc(0,-(R-24),5,0,7); g.fill();   /* 밸브 */
+}
+function drawPlainCircle(g,R){                            /* 내가 정한 원 */
+  const grad=g.createRadialGradient(0,0,8,0,0,R);
+  grad.addColorStop(0,"#eaf3ff"); grad.addColorStop(1,"#2f7fe0");
+  g.fillStyle=grad; g.beginPath(); g.arc(0,0,R,0,7); g.fill();
+  g.strokeStyle="#1e5fb0"; g.lineWidth=4; g.stroke();
+  g.strokeStyle="rgba(255,255,255,.85)"; g.lineWidth=3;
+  for(let k=0;k<6;k++){ const a=k*Math.PI/3;
+    g.beginPath(); g.moveTo(0,0); g.lineTo(Math.cos(a)*(R-6),Math.sin(a)*(R-6)); g.stroke(); }
+  g.fillStyle="#ff8c42"; g.beginPath(); g.arc(0,-R+8,7,0,7); g.fill();
+}
+const objs=[
+  {name:"100원 동전", ic:"🪙", d:2.4, unit:"cm", draw:drawCoin},
+  {name:"컵 바닥", ic:"🥤", d:7, unit:"cm", draw:drawCupTop},
+  {name:"접시", ic:"🍽️", d:24, unit:"cm", draw:drawPlate},
+  {name:"자전거 바퀴", ic:"🚲", d:66, unit:"cm", draw:drawWheel},
+  {name:"내가 정한 원", ic:"✏️", d:null, unit:"cm", custom:true, draw:drawPlainCircle},
+];
+let m1sel=0, m1rolled=false, m1anim=null;
+const c1=document.getElementById("c1"), x1=c1.getContext("2d");
+function diaOf(o){ if(o&&o.custom){ const v=parseFloat((document.getElementById("m1custom")||{}).value); return (isFinite(v)&&v>0)?v:15; } return o.d; }
+function buildChips(){
+  const w=document.getElementById("m1chips"); w.innerHTML="";
+  objs.forEach((o,i)=>{
+    const el=document.createElement("div");
+    el.className="chip"+(i===m1sel?" sel":"");
+    el.setAttribute("role","button");
+    el.setAttribute("tabindex","0");
+    el.setAttribute("aria-pressed", i===m1sel?"true":"false");
+    el.setAttribute("aria-label", (o.custom?o.name+" 직접 입력":o.name+" 지름 "+o.d+o.unit)+" 선택");
+    el.innerHTML='<span class="ic">'+o.ic+'</span>'+o.name+'<small>'+(o.custom?'직접 입력':'지름 '+o.d+o.unit)+'</small>';
+    const pick=()=>{m1sel=i; buildChips(); resetM1();};
+    el.onclick=pick;
+    el.onkeydown=(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); } };
+    w.appendChild(el);
+  });
+  const cwrap=document.getElementById("m1customWrap"); if(cwrap) cwrap.style.display = objs[m1sel].custom ? "flex" : "none";
+}
+function drawM1(progress){
+  const W=c1.width,H=c1.height; x1.clearRect(0,0,W,H);
+  const groundY=H-70;
+  x1.strokeStyle="#c5d4e3"; x1.lineWidth=3; x1.beginPath(); x1.moveTo(40,groundY); x1.lineTo(W-30,groundY); x1.stroke();
+  const o=objs[m1sel];
+  const R=58;
+  const startX=90, span=W-220;
+  const cx=startX + span*progress, cy=groundY-R;
+  const circPx = span;
+  x1.strokeStyle="#ff6b8a"; x1.lineWidth=7; x1.lineCap="round";
+  x1.beginPath(); x1.moveTo(startX,groundY); x1.lineTo(startX+span*progress,groundY); x1.stroke();
+  if(progress>=1){
+    const dpx=circPx/PI;
+    x1.strokeStyle="#1e5fb0"; x1.lineWidth=2;
+    for(let k=0;k<=3;k++){
+      const xx=startX+Math.min(dpx*k,span);
+      x1.beginPath(); x1.moveTo(xx,groundY-6); x1.lineTo(xx,groundY+14); x1.stroke();
+    }
+    x1.fillStyle="#1e5fb0"; x1.font="bold 13px sans-serif"; x1.textAlign="center";
+    x1.fillText("지름 1", startX+dpx*0.5, groundY+30);
+    x1.fillText("지름 2", startX+dpx*1.5, groundY+30);
+    x1.fillText("지름 3", startX+dpx*2.5, groundY+30);
+    x1.fillStyle="#ff6b8a"; x1.fillText("…약 0.14", startX+dpx*3+8, groundY+30);
+  }
+  const rot=progress*(span/R);
+  x1.save(); x1.translate(cx,cy); x1.rotate(rot);
+  (o.draw||drawPlainCircle)(x1,R);
+  x1.restore();
+  x1.save(); x1.globalAlpha=0.9;
+  x1.strokeStyle="#ffd23f"; x1.lineWidth=4; x1.lineCap="butt";
+  x1.beginPath(); x1.moveTo(cx-R,cy); x1.lineTo(cx+R,cy); x1.stroke();
+  x1.restore();
+  x1.fillStyle="#1f2d3d"; x1.font="bold 14px sans-serif"; x1.textAlign="center";
+  x1.fillText("지름", cx, cy-R-12);
+  x1.fillText(o.ic+" "+o.name, cx, 34);
+  if(progress>0){
+    const dist=(diaOf(o)*PI)*progress;
+    const label="굴러간 거리 "+dist.toFixed(1)+o.unit;
+    x1.font="bold 16px sans-serif";
+    const tw=x1.measureText(label).width+22;
+    let bx=cx-tw/2; bx=Math.max(8,Math.min(bx,W-tw-8));
+    const by=cy-R-44;
+    x1.fillStyle="#eaf3ff"; x1.strokeStyle="#b9d6f7"; x1.lineWidth=1.5;
+    x1.beginPath(); x1.roundRect(bx,by,tw,28,9); x1.fill(); x1.stroke();
+    x1.fillStyle="#1e5fb0"; x1.textAlign="center";
+    x1.fillText(label, bx+tw/2, by+19);
+  }
+}
+function resetM1(){
+  if(m1anim) cancelAnimationFrame(m1anim);
+  m1rolled=false; buildChips();
+  document.getElementById("m1d").textContent="–";
+  document.getElementById("m1c").textContent="–";
+  document.getElementById("m1r").textContent="–";
+  document.getElementById("rollBtn").disabled=false;
+  const hint=document.getElementById("m1hint");
+  if(hint){ hint.innerHTML='🔁 <b>다른 물체로도 굴려 보세요!</b> 🪙 동전부터 🚲 자전거 바퀴까지 — 크기가 달라도 결과가 어떻게 되는지 비교해 봐요.'; }
+  const lg=document.getElementById("m1log"); if(lg) lg.classList.remove("locked");
+  const gi=document.getElementById("m1guess"); if(gi) gi.value="";
+  const gfb=document.getElementById("m1guessfb"); if(gfb) gfb.className="m1guessfb";
+  drawM1(0);
+}
+function rollM1(){
+  if(m1rolled) return;
+  document.getElementById("rollBtn").disabled=true;
+  const o=objs[m1sel], dia=diaOf(o), circ=dia*PI;
+  const dur=3400, t0=performance.now();
+  document.getElementById("m1d").textContent=dia+o.unit;
+  function step(now){
+    const t=Math.min(1,(now-t0)/dur);
+    const p=0.5-0.5*Math.cos(Math.PI*t);
+    drawM1(p);
+    const dist=circ*p;
+    document.getElementById("m1c").textContent=dist.toFixed(2)+o.unit;
+    document.getElementById("m1r").textContent=(dist/dia).toFixed(2);
+    if(t<1){m1anim=requestAnimationFrame(step);}
+    else{finishM1();}
+  }
+  m1anim=requestAnimationFrame(step);
+}
+function finishM1(){
+  m1rolled=true;
+  const o=objs[m1sel], dia=diaOf(o);
+  const c=(dia*PI);
+  document.getElementById("m1d").textContent=dia+o.unit;
+  document.getElementById("m1c").textContent=c.toFixed(2)+o.unit;
+  document.getElementById("m1r").textContent=(c/dia).toFixed(2);
+  const tb=document.querySelector("#m1log tbody");
+  const rowKey=o.custom? o.name+" "+dia+o.unit : o.name;
+  const rowLabel=o.custom? o.ic+' 내가 정한 원('+dia+o.unit+')' : o.ic+' '+o.name;
+  if(![...tb.children].some(tr=>tr.dataset.n===rowKey)){
+    const tr=document.createElement("tr"); tr.dataset.n=rowKey;
+    tr.innerHTML='<td>'+rowLabel+'</td><td>'+dia+o.unit+'</td><td>'+c.toFixed(2)+o.unit+'</td><td class="pi">'+(c/dia).toFixed(2)+'</td>';
+    tb.appendChild(tr);
+  }
+  // (c) 2개 이상 쌓이면 "크기가 달라도 둘레÷지름은 항상 약 3.14" 강조 연출
+  const n=tb.children.length;
+  const ratios=[...tb.querySelectorAll("td.pi")];
+  // 갓 추가된 행의 비율 칸을 깜빡여 강조
+  const last=ratios[ratios.length-1];
+  if(last){ last.classList.remove("flash"); void last.offsetWidth; last.classList.add("flash"); }
+  const hint=document.getElementById("m1hint");
+  if(n>=2){
+    document.getElementById("m1insight").classList.add("show");
+    document.getElementById("m1log").classList.add("locked");
+    // 모든 비율 칸을 차례로 빛나게 해서 "항상 3.14"를 한눈에
+    ratios.forEach((td,i)=>{ setTimeout(()=>{ td.classList.remove("flash"); void td.offsetWidth; td.classList.add("flash"); }, i*220); });
+    const ro=document.querySelector(".readouts .ro.hl"); if(ro){ ro.classList.remove("flash"); void ro.offsetWidth; ro.classList.add("flash"); }
+    if(hint){ hint.innerHTML='✅ <b>보이나요?</b> 물체 크기가 제각각이어도 <b>둘레 ÷ 지름</b> 칸은 모두 <b>약 3.14</b> — 이 일정한 값이 바로 원주율이에요!'; }
+  } else if(hint){
+    hint.innerHTML='👍 하나 굴렸어요! 이제 <b>다른 물체</b>도 굴려서 <b>둘레 ÷ 지름</b> 값을 비교해 보세요.';
+  }
+  showGuessResult(c, o);
+}
+function showGuessResult(actual, o){
+  const gi=document.getElementById("m1guess"), fb=document.getElementById("m1guessfb");
+  if(!gi||!fb) return;
+  const g=parseFloat(gi.value);
+  if(isNaN(g)){ fb.className="m1guessfb"; return; }
+  const err=Math.abs(g-actual)/actual;
+  let msg, cls;
+  if(err<=0.1){ msg="🎯 예상이 아주 정확해요!"; cls="good"; }
+  else if(err<=0.3){ msg="👍 꽤 가까운 예상이었어요!"; cls="good"; }
+  else if(g<actual){ msg="🔎 실제는 예상보다 더 멀리 굴러갔어요!"; cls="near"; }
+  else { msg="🔎 실제는 예상보다 덜 굴러갔어요!"; cls="near"; }
+  fb.className="m1guessfb show "+cls;
+  fb.innerHTML=msg+" 예상 <b>"+g.toFixed(1)+o.unit+"</b> → 실제 <b>"+actual.toFixed(1)+o.unit+"</b> (지름의 약 3.14배!)";
+}
+
+/* MISSION 2 — 원의 넓이 변신 (부채꼴 → 직사각형 슬라이드 전환) */
+const c2=document.getElementById("c2"), x2=c2.getContext("2d");
+/* tArr[i] = 조각 i의 이동 진행도(0=원, 1=직사각형), slot[i] = 옮겨 놓은 자리 번호(-1이면 아직 원 안) */
+const M2 = { n:8, morph:0, anim:null, rUnit:10, tArr:[], goal:[], slot:[], moved:0 };
+const COL_W="#ff8c42";   // 가로(원주의 절반) 강조색
+const COL_H="#16b8a6";   // 세로(반지름) 강조색
+const easeInOut = t => 0.5 - 0.5*Math.cos(Math.PI*t);
+const lerp = (a,b,t)=>a+(b-a)*t;
+function normAng(a){ while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; return a; }
+
+const C2 = (function(){
+  const r=78, Lcx=150, Lcy=190;
+  const Rx=372, RtopY=Lcy-r/2;        // 직사각형 좌상단 (높이 = r)
+  return {r, Lcx, Lcy, Rx, RtopY, baseW:Math.PI*r};
+})();
+
+// 원 안에서의 조각 i 위치
+function cirOf(i, n){
+  const {Lcx, Lcy} = C2;
+  const midC=(i+0.5)*(2*Math.PI/n);
+  return { ax:Lcx, ay:Lcy, rot:midC-Math.PI/2 };
+}
+// 직사각형 자리 k(옮긴 순서)의 위치 — 왼쪽부터 차례로 채운다
+function rectOfSlot(k, n){
+  const {r, Rx, RtopY, baseW} = C2;
+  const colW=baseW/Math.ceil(n/2);
+  if(k%2===0){ const e=k/2;     return { ax:Rx+(e+0.5)*colW, ay:RtopY,   rot:0 }; }      // 꼭짓점 위, 호 아래
+  else       { const o=(k-1)/2; return { ax:Rx+(o+1)*colW,   ay:RtopY+r, rot:Math.PI }; } // 꼭짓점 아래, 호 위
+}
+// 한 조각의 (원 상태 / 직사각형 상태) 변환
+function pieceTransforms(i, n){
+  const k = (M2.slot[i]!=null && M2.slot[i]>=0) ? M2.slot[i] : i;
+  return { cir:cirOf(i,n), rect:rectOfSlot(k,n) };
+}
+
+function drawPiece(ax, ay, rot, color){
+  const {r}=C2, half=Math.PI/M2.n;
+  x2.save(); x2.translate(ax,ay); x2.rotate(rot);
+  x2.beginPath(); x2.moveTo(0,0); x2.arc(0,0,r, Math.PI/2-half, Math.PI/2+half); x2.closePath();
+  x2.fillStyle=color; x2.fill();
+  /* 조각이 얇아질수록 흰 테두리가 차지하는 비중이 커져 색이 뭉개진다.
+     조각 수에 맞추어 선을 얇게 하고, 아주 잘게 자르면 테두리를 그리지 않는다. */
+  const lw = M2.n<=24 ? 1 : (M2.n<=48 ? 0.8 : (M2.n<=96 ? 0.5 : 0.3));
+  if(M2.n<=120){ x2.strokeStyle="#ffffff"; x2.lineWidth=lw; x2.stroke(); }
+  x2.restore();
+}
+
+function dimH(x0,x1,y,color){
+  x2.strokeStyle=color; x2.lineWidth=2;
+  x2.beginPath(); x2.moveTo(x0,y); x2.lineTo(x1,y); x2.stroke();
+  [x0,x1].forEach(xx=>{ x2.beginPath(); x2.moveTo(xx,y-5); x2.lineTo(xx,y+5); x2.stroke(); });
+}
+function dimV(x,y0,y1,color){
+  x2.strokeStyle=color; x2.lineWidth=2;
+  x2.beginPath(); x2.moveTo(x,y0); x2.lineTo(x,y1); x2.stroke();
+  [y0,y1].forEach(yy=>{ x2.beginPath(); x2.moveTo(x-5,yy); x2.lineTo(x+5,yy); x2.stroke(); });
+}
+
+/* 조각 상태 초기화 — 조각 수가 바뀌거나 화면에 들어올 때 */
+function m2ResetAll(){
+  if(M2.anim){ cancelAnimationFrame(M2.anim); M2.anim=null; }
+  const el=document.getElementById("pcs");
+  M2.n = el ? +el.value : M2.n;
+  M2.tArr=new Array(M2.n).fill(0);
+  M2.goal=new Array(M2.n).fill(0);
+  M2.slot=new Array(M2.n).fill(-1);
+  M2.moved=0; M2.morph=0;
+}
+function nextUnmoved(){ for(let i=0;i<M2.n;i++){ if(M2.slot[i]<0) return i; } return -1; }
+/* 조각 i를 다음 빈 자리에 배정 — 왼쪽부터 차례로 채워야 가로가 순서대로 늘어난다 */
+function assignPiece(i){
+  if(i<0 || i>=M2.n || M2.slot[i]>=0) return false;
+  M2.slot[i]=M2.moved; M2.moved++; M2.goal[i]=1; M2.morph=M2.moved/M2.n;
+  return true;
+}
+function m2Start(){ if(!M2.anim) M2.anim=requestAnimationFrame(m2Tick); }
+function m2Tick(){
+  let busy=false;
+  for(let i=0;i<M2.n;i++){
+    const g=M2.goal[i];
+    if(Math.abs(M2.tArr[i]-g)>0.002){ M2.tArr[i]+=(g-M2.tArr[i])*0.16; busy=true; }
+    else M2.tArr[i]=g;
+  }
+  drawM2();
+  if(busy){ M2.anim=requestAnimationFrame(m2Tick); }
+  else{
+    M2.anim=null;
+    if(M2.moved===0){ for(let i=0;i<M2.n;i++) M2.slot[i]=-1; }
+    updateMorphBtn();
+  }
+}
+function moveOnePiece(){ if(assignPiece(nextUnmoved())){ m2Start(); updateMorphBtn(); } }
+function movePieceAt(i){ if(assignPiece(i)){ m2Start(); updateMorphBtn(); } }
+function spreadAllPieces(){
+  let any=false, k=nextUnmoved();
+  while(k>=0){ assignPiece(k); any=true; k=nextUnmoved(); }
+  if(any){ m2Start(); updateMorphBtn(); }
+}
+/* 캔버스에서 누른 조각 찾기 — 원 안이면 각도로, 밖이면 남은 첫 조각 */
+function pieceAt(sx, sy){
+  const {Lcx, Lcy, r}=C2;
+  const dx=sx-Lcx, dy=sy-Lcy;
+  if(dx*dx+dy*dy > r*r*1.3) return -1;
+  let a=Math.atan2(dy,dx); if(a<0) a+=2*Math.PI;
+  const k=Math.floor(a/(2*Math.PI/M2.n))%M2.n;
+  return (M2.slot[k]<0) ? k : -1;
+}
+function onM2Click(ev){
+  const box=c2.getBoundingClientRect();
+  if(!box.width||!box.height) return;
+  const sx=(ev.clientX-box.left)*(c2.width/box.width);
+  const sy=(ev.clientY-box.top)*(c2.height/box.height);
+  const i=pieceAt(sx,sy);
+  if(i>=0) movePieceAt(i); else moveOnePiece();
+}
+
+function drawM2(){
+  const nSel=+document.getElementById("pcs").value;
+  if(nSel!==M2.n || M2.tArr.length!==nSel){ M2.n=nSel; m2ResetAll(); }
+  const n=M2.n, T=M2.moved/n;
+  const {r, Lcx, Lcy, Rx, RtopY, baseW}=C2;
+  const W=c2.width,H=c2.height; x2.clearRect(0,0,W,H);
+
+  // 조각이 떠난 자리(원 윤곽) 안내
+  if(T>0.02){
+    x2.save(); x2.globalAlpha=0.25*(1-T)+0.10;
+    x2.strokeStyle="#9fc2e8"; x2.setLineDash([5,5]); x2.lineWidth=2;
+    x2.beginPath(); x2.arc(Lcx,Lcy,r,0,7); x2.stroke();
+    x2.setLineDash([]); x2.restore();
+  }
+
+  // 화살표 (원 → 직사각형)
+  if(T>0.02 && T<0.995){
+    x2.save(); x2.globalAlpha=0.85;
+    x2.strokeStyle=COL_W; x2.lineWidth=4;
+    const ay=Lcy, x0=Lcx+r+14, x1=Rx-18;
+    x2.beginPath(); x2.moveTo(x0,ay); x2.lineTo(x1,ay); x2.stroke();
+    x2.beginPath(); x2.moveTo(x1,ay); x2.lineTo(x1-10,ay-7); x2.lineTo(x1-10,ay+7); x2.closePath(); x2.fillStyle=COL_W; x2.fill();
+    x2.restore();
+  }
+
+  // 다 옮겼을 때의 자리(목표 직사각형) 안내
+  if(M2.moved>0){
+    x2.save(); x2.globalAlpha=0.4;
+    x2.strokeStyle="rgba(31,45,61,.45)"; x2.setLineDash([6,5]); x2.lineWidth=2;
+    x2.strokeRect(Rx, RtopY, baseW, r); x2.setLineDash([]); x2.restore();
+  }
+
+  // 조각들: 원 → 직사각형 보간 (조각마다 따로)
+  for(let i=0;i<n;i++){
+    const {cir,rect}=pieceTransforms(i,n);
+    const t=M2.tArr[i]||0;
+    const ax=lerp(cir.ax,rect.ax,t), ay=lerp(cir.ay,rect.ay,t);
+    const rot=cir.rot + normAng(rect.rot-cir.rot)*t;
+    drawPiece(ax,ay,rot,(i%2===0)?"#2f7fe0":"#f4b13d");
+  }
+
+  // 원 라벨과 누르기 안내
+  if(M2.moved===0){
+    x2.fillStyle="#1f2d3d"; x2.font="bold 14px sans-serif"; x2.textAlign="center";
+    x2.fillText("원 (반지름 "+M2.rUnit+"cm)", Lcx, Lcy+r+30);
+    x2.fillStyle="#1e5fb0"; x2.font="bold 15px sans-serif";
+    x2.fillText("👆 조각을 눌러 옮겨 보세요", Lcx, Lcy+r+54);
+  } else if(T<1){
+    x2.save(); x2.globalAlpha=1-T;
+    x2.fillStyle="#1f2d3d"; x2.font="bold 14px sans-serif"; x2.textAlign="center";
+    x2.fillText("원 (반지름 "+M2.rUnit+"cm)", Lcx, Lcy+r+30);
+    x2.restore();
+  }
+
+  // 가로·세로 — 이름표 없이 숫자만
+  const wcm=PI*M2.rUnit*M2.moved/n;
+  if(M2.moved>0){
+    x2.save();
+    const fw=baseW*(M2.moved/n), yB=RtopY+r+16;
+    dimH(Rx, Rx+fw, yB, COL_W);
+    x2.fillStyle=COL_W; x2.font="bold 15px sans-serif"; x2.textAlign="center";
+    x2.fillText(wcm.toFixed(1)+"cm", Rx+fw/2, yB+21);
+    const xL=Rx-16;
+    dimV(xL, RtopY, RtopY+r, COL_H);
+    x2.translate(xL-13, RtopY+r/2); x2.rotate(-Math.PI/2);
+    x2.fillStyle=COL_H; x2.font="bold 15px sans-serif"; x2.textAlign="center";
+    x2.fillText(M2.rUnit+"cm", 0, 0);
+    x2.restore();
+  }
+  document.getElementById("m2rw").textContent = M2.moved>0 ? wcm.toFixed(1)+"cm" : "–";
+  document.getElementById("m2rh").textContent = M2.moved>0 ? M2.rUnit+"cm" : "–";
+  document.getElementById("pcsN").textContent=n;
+  document.getElementById("pcs").setAttribute("aria-valuetext", n + "조각");
+  const nearV=100*(1-1/n);
+  const near=(n>=100)? nearV.toFixed(1) : Math.round(nearV);
+  let nmsg;
+  if(n<10) nmsg='🔲 아직 가장자리가 울퉁불퉁해요. 조각을 더 늘려 볼까요?';
+  else if(n<20) nmsg='🔼 점점 직사각형에 가까워지고 있어요!';
+  else if(n<40) nmsg='▭ 거의 직사각형이에요!';
+  else if(n<100) nmsg='✅ 완벽한 직사각형에 가까워요!';
+  else nmsg='🔎 눈으로는 직사각형과 구별되지 않아요. 그래도 아주 조금은 울퉁불퉁하답니다.';
+  const me=document.getElementById("m2near");
+  if(me) me.innerHTML='<span style="color:#1e5fb0">직사각형 근접도(어림) <b>약 '+near+'%</b></span> · <span style="color:#0b8f63">'+nmsg+'</span>';
+}
+
+/* 한꺼번에 펼치기 / 다시 원으로 모으기 */
+function toggleMorph(){ if(M2.moved<M2.n) spreadAllPieces(); else resetM2(); }
+function resetM2(){
+  for(let i=0;i<M2.n;i++) M2.goal[i]=0;
+  M2.moved=0; M2.morph=0;
+  m2Start(); updateMorphBtn();
+}
+function updateMorphBtn(){
+  const b=document.getElementById("m2morphBtn"); if(b) b.innerHTML = (M2.moved>=M2.n) ? "↺ 다시 원으로 모으기" : "✨ 한꺼번에 펼치기 ▶";
+  const o=document.getElementById("m2oneBtn"); if(o) o.disabled = (M2.moved>=M2.n);
+}
+
+/* MISSION 3 — 바퀴가 사각형이라면? (계산 없는 관찰 활동)
+   정n각형이 구를 때 중심 높이는 변까지 거리 a에서 꼭짓점까지 거리 R 사이를 오르내리고,
+   원만 중심 높이가 R로 일정하다. */
+const c3=document.getElementById("c3"), x3=c3.getContext("2d");
+const SHAPES=[
+  {key:"tri", n:3, name:"삼각형 바퀴", ic:"△", col:"#e0466b", soft:"rgba(224,70,107,.20)"},
+  {key:"squ", n:4, name:"사각형 바퀴", ic:"□", col:"#f2700f", soft:"rgba(242,112,15,.20)"},
+  {key:"hex", n:6, name:"육각형 바퀴", ic:"⬡", col:"#c98a00", soft:"rgba(201,138,0,.20)"},
+  {key:"cir", n:0, name:"원 바퀴",     ic:"○", col:"#2f7fe0", soft:"rgba(47,127,224,.20)"},
+];
+const M3={sel:1, mode:"single", p:0, anim:null, rolled:false};
+const M3_TMAX=2*Math.PI;                                  /* 한 바퀴 */
+
+/* 회전각 t에서의 바퀴 중심 (수학 좌표: x 오른쪽, y 위) */
+function polyCenter(n,R,t){
+  const half=Math.PI/n, s=2*R*Math.sin(half);
+  const k=Math.floor(t/(2*half)), b=t-k*2*half, al=half-b;
+  return { x:k*s - R*Math.sin(al), y:R*Math.cos(al) };
+}
+function m3Center(shape,R,t){
+  return (shape.n>=3) ? polyCenter(shape.n,R,t) : { x:R*t, y:R };
+}
+function m3StartX(shape,R){ return (shape.n>=3) ? R*Math.sin(Math.PI/shape.n) : 0; }
+
+function drawWheelShape(shape,R,t){
+  x3.save(); x3.rotate(t);
+  if(shape.n>=3){
+    const N=shape.n, half=Math.PI/N;
+    x3.beginPath();
+    for(let j=0;j<N;j++){
+      const a=Math.PI/2-half+j*(2*Math.PI/N);
+      const px=Math.cos(a)*R, py=Math.sin(a)*R;
+      if(j===0) x3.moveTo(px,py); else x3.lineTo(px,py);
+    }
+    x3.closePath();
+    x3.fillStyle=shape.soft; x3.fill();
+    x3.strokeStyle=shape.col; x3.lineWidth=Math.max(4,R*0.09); x3.lineJoin="round"; x3.stroke();
+    x3.strokeStyle=shape.col; x3.lineWidth=Math.max(1.4,R*0.03);
+    for(let j=0;j<N;j++){
+      const a=Math.PI/2-half+j*(2*Math.PI/N);
+      x3.beginPath(); x3.moveTo(0,0); x3.lineTo(Math.cos(a)*R*0.9,Math.sin(a)*R*0.9); x3.stroke();
+    }
+  } else {
+    x3.beginPath(); x3.arc(0,0,R,0,7);
+    x3.fillStyle=shape.soft; x3.fill();
+    x3.strokeStyle=shape.col; x3.lineWidth=Math.max(4,R*0.09); x3.stroke();
+    x3.strokeStyle=shape.col; x3.lineWidth=Math.max(1.4,R*0.03);
+    for(let j=0;j<6;j++){
+      const a=j*Math.PI/3;
+      x3.beginPath(); x3.moveTo(0,0); x3.lineTo(Math.cos(a)*R*0.9,Math.sin(a)*R*0.9); x3.stroke();
+    }
+    x3.fillStyle="#ff8c42"; x3.beginPath(); x3.arc(0,-R*0.72,Math.max(3,R*0.07),0,7); x3.fill();
+  }
+  x3.restore();
+  x3.fillStyle="#1f2d3d"; x3.beginPath(); x3.arc(0,0,Math.max(3.5,R*0.08),0,7); x3.fill();
+}
+
+/* 레인 하나 그리기 — 지면·기준선·축 궤적·바퀴 */
+function drawLane(shape,R,x0,groundY,p,labelX,big){
+  const sx=x0+m3StartX(shape,R);
+  const endT=M3_TMAX*p;
+  drawGround3(groundY, x0-10, c3.width-16);
+  /* 축 높이 기준선(원 바퀴의 축 높이) */
+  x3.save(); x3.strokeStyle="rgba(47,127,224,.28)"; x3.setLineDash([4,5]); x3.lineWidth=1.5;
+  x3.beginPath(); x3.moveTo(x0-10,groundY-R); x3.lineTo(c3.width-16,groundY-R); x3.stroke();
+  x3.setLineDash([]); x3.restore();
+  /* 축이 지나간 자리 */
+  if(p>0){
+    x3.save(); x3.strokeStyle=shape.col; x3.lineWidth=big?3.4:3; x3.lineJoin="round";
+    x3.beginPath();
+    const STEP=160;
+    for(let q=0;q<=STEP;q++){
+      const tt=endT*q/STEP, cc=m3Center(shape,R,tt);
+      const X=sx+cc.x, Y=groundY-cc.y;
+      if(q===0) x3.moveTo(X,Y); else x3.lineTo(X,Y);
+    }
+    x3.stroke(); x3.restore();
+  }
+  const c=m3Center(shape,R,endT), cx=sx+c.x, cy=groundY-c.y;
+  x3.save(); x3.translate(cx,cy); drawWheelShape(shape,R,endT); x3.restore();
+  /* 이름과 상태 */
+  if(labelX!=null){
+    x3.textAlign="left";
+    x3.font="bold 17px sans-serif"; x3.fillStyle=shape.col;
+    x3.fillText(shape.ic+" "+shape.name, labelX, groundY-R-14);
+    x3.font="bold 14px sans-serif"; x3.fillStyle="#5b6b7d";
+    let msg;
+    if(p<=0) msg="굴리기를 눌러 보세요";
+    else if(shape.n>=3) msg="한 바퀴에 "+shape.n+"번 덜컹!";
+    else msg="축 높이가 그대로";
+    x3.fillText(msg, labelX, groundY-R+8);
+  }
+}
+function drawGround3(y,x0,x1){
+  x3.strokeStyle="#c5d4e3"; x3.lineWidth=3;
+  x3.beginPath(); x3.moveTo(x0,y); x3.lineTo(x1,y); x3.stroke();
+}
+
+function drawM3(){
+  const W=c3.width,H=c3.height; x3.clearRect(0,0,W,H);
+  if(M3.mode==="compare"){
+    for(let i=0;i<SHAPES.length;i++){
+      drawLane(SHAPES[i], 45, 56, 100+i*112, M3.p, 430, false);
+    }
+  } else {
+    const shape=SHAPES[M3.sel];
+    drawLane(shape, 100, 70, 350, M3.p, null, true);
+    x3.textAlign="center";
+    x3.font="bold 20px sans-serif"; x3.fillStyle=shape.col;
+    x3.fillText(shape.ic+" "+shape.name, W/2, 40);
+    x3.font="bold 15px sans-serif"; x3.fillStyle="#5b6b7d";
+    let msg;
+    if(M3.p<=0) msg="굴리기를 누르면 축이 지나간 자리가 선으로 남아요";
+    else if(shape.n>=3) msg="축이 위아래로 오르내려요 — 한 바퀴에 "+shape.n+"번 덜컹!";
+    else msg="축 높이가 처음부터 끝까지 변하지 않아요";
+    x3.fillText(msg, W/2, 66);
+  }
+}
+
+function buildM3Chips(){
+  const w=document.getElementById("m3chips"); if(!w) return;
+  w.innerHTML="";
+  SHAPES.forEach((s,i)=>{
+    const el=document.createElement("div");
+    el.className="chip"+(i===M3.sel && M3.mode==="single"?" sel":"");
+    el.setAttribute("role","button"); el.setAttribute("tabindex","0");
+    el.setAttribute("aria-pressed", (i===M3.sel && M3.mode==="single")?"true":"false");
+    el.setAttribute("aria-label", s.name+" 고르기");
+    el.innerHTML='<span class="ic" style="color:'+s.col+'">'+s.ic+'</span>'+s.name;
+    const pick=()=>{ M3.sel=i; M3.mode="single"; resetM3(); };
+    el.onclick=pick;
+    el.onkeydown=(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); } };
+    w.appendChild(el);
+  });
+}
+function updateM3Btns(){
+  const b=document.getElementById("m3cmp");
+  if(b){
+    const on=(M3.mode==="compare");
+    b.classList.toggle("ghost", !on);
+    b.setAttribute("aria-pressed", on?"true":"false");
+    b.innerHTML = on ? "🛞 한 모양씩 굴리기" : "🔬 네 바퀴 동시 비교";
+  }
+  const r=document.getElementById("m3roll"); if(r) r.disabled=M3.rolled;
+}
+function toggleM3Mode(){ M3.mode=(M3.mode==="compare")?"single":"compare"; resetM3(); }
+function resetM3(){
+  if(M3.anim){ cancelAnimationFrame(M3.anim); M3.anim=null; }
+  M3.p=0; M3.rolled=false;
+  buildM3Chips(); updateM3Btns();
+  const ins=document.getElementById("m3insight"); if(ins){ ins.classList.remove("show"); ins.innerHTML=""; }
+  const h=document.getElementById("m3hint");
+  if(h) h.innerHTML = (M3.mode==="compare")
+    ? '🔬 <b>네 바퀴를 한꺼번에 굴려 봐요.</b> 축이 지나간 자리를 위아래로 견주어 보세요.'
+    : '🛞 <b>바퀴를 골라 굴려 보세요.</b> 축이 지나간 자리가 선으로 남아요.';
+  drawM3();
+}
+function rollM3(){
+  if(M3.rolled) return;
+  M3.rolled=true; updateM3Btns();
+  const dur=3200, t0=performance.now();
+  if(M3.anim) cancelAnimationFrame(M3.anim);
+  (function step(now){
+    const k=Math.min(1,(now-t0)/dur);
+    M3.p=easeInOut(k);
+    drawM3();
+    if(k<1){ M3.anim=requestAnimationFrame(step); }
+    else{ M3.anim=null; M3.p=1; drawM3(); finishM3(); }
+  })(t0);
+}
+function finishM3(){
+  const ins=document.getElementById("m3insight"), h=document.getElementById("m3hint");
+  if(M3.mode==="compare"){
+    if(ins){ ins.innerHTML='👀 축이 지나간 자리를 보세요. 모서리가 있는 바퀴는 <b>오르내리는 물결</b>이 되고, <b>원 바퀴만 곧은 선</b>이에요.<br>원 바퀴만 축 높이가 변하지 않는 까닭은 무엇일까요? 🤔'; ins.classList.add("show"); }
+    if(h) h.innerHTML='🔁 <b>바퀴를 하나씩 골라</b> 다시 굴려 보며 덜컹이는 횟수도 세어 보세요.';
+  } else {
+    const s=SHAPES[M3.sel];
+    if(ins){
+      ins.innerHTML = (s.n>=3)
+        ? '😵 축이 <b>'+s.n+'번</b> 위로 올라갔다 내려왔어요. 이런 수레를 타면 어떨까요?'
+        : '😀 원 바퀴는 축 높이가 <b>한 번도</b> 변하지 않았어요. 왜 원만 그럴까요? 🤔';
+      ins.classList.add("show");
+    }
+    if(h) h.innerHTML='🔁 <b>다른 모양</b>으로도 굴려 보고, 🔬 <b>네 바퀴 동시 비교</b>로 한눈에 견주어 보세요.';
+  }
+}
+
+document.querySelectorAll("#steps .dot").forEach(d=>d.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault(); go(+d.dataset.i);}}));
+function buildSummary(){
+  const el=document.getElementById("cSummary"); if(!el) return;
+  const rolls=document.querySelectorAll("#m1log tbody tr").length;
+  const parts=[];
+  parts.push('🛞 미션 1 — 원 바퀴만 축이 흔들리지 않았고, 원 뚜껑만 구멍에 빠지지 않았어요. 원은 <b>어느 방향으로 재도 폭(지름)이 같기</b> 때문이에요.');
+  if(rolls>0) parts.push('🔵 미션 2 — 원 <b>'+rolls+'개</b>를 굴려 보니 <b>둘레 ÷ 지름</b>이 모두 <b>약 3.14</b>였어요!');
+  else parts.push('🔵 미션 2 — 원을 굴려 둘레 ÷ 지름이 약 3.14임을 발견했어요.');
+  const moved=(M2&&M2.moved)?M2.moved:0;
+  if(moved>0) parts.push('🟦 미션 3 — 조각 <b>'+moved+'개</b>를 옮겨 원을 <b>직사각형</b>으로 바꿔 보았어요.');
+  else parts.push('🟦 미션 3 — 원을 부채꼴로 잘라 옮기면 <b>직사각형</b>에 가까워졌어요.');
+  parts.push('💡 핵심 — <b>원주율</b>은 둘레 ÷ 지름으로, 약 <b>3.14</b>예요.');
+  parts.push('❓ 남은 물음 — 지름만 알면 둘레와 넓이를 정말 구할 수 있을까요? 직사각형의 가로와 세로는 원의 어디일까요?');
+  el.innerHTML=parts.map(function(p){return '<div class="sline">'+p+'</div>';}).join('');
+}
+/* ===== 미션 1 갈래 ② — 맨홀 뚜껑 ===== */
+/* 뚜껑을 감싸는 원의 지름은 80cm, 구멍은 같은 모양이면서 뚜껑보다 조금 작다(뚜껑이 턱에 걸치도록).
+   어느 방향에서 잰 뚜껑의 폭이 '구멍의 가장 넓은 곳'보다 좁아지면, 그 방향으로 세워 빠뜨릴 수 있다.
+   원은 어느 방향에서 재도 폭이 지름 그대로여서 결코 좁아지지 않는다. */
+const MH_SHAPES=[
+  {key:"tri", n:3, name:"삼각형 뚜껑", ic:"△", col:"#e2574c", soft:"rgba(226,87,76,.18)"},
+  {key:"sq",  n:4, name:"사각형 뚜껑", ic:"□", col:"#f2a03d", soft:"rgba(242,160,61,.20)"},
+  {key:"hex", n:6, name:"육각형 뚜껑", ic:"⬡", col:"#7d5bd6", soft:"rgba(125,91,214,.18)"},
+  {key:"cir", n:0, name:"원 뚜껑",     ic:"○", col:"#2f7fe0", soft:"rgba(47,127,224,.20)"}
+];
+const MH_LID_CM=80;                 /* 뚜껑을 감싸는 원의 지름(cm) */
+const MH_HOLE_K=0.93;               /* 구멍 크기 = 뚜껑의 93%. 이 값이 1보다 작기만 하면
+                                       원 뚜껑은 어떤 각도에서도 빠지지 않는다. 0.90이면 삼각형·육각형이
+                                       빠지는 각도가 181개 중 27개뿐이라 찾기 어려워 0.93으로 넓혔다. */
+const MH_SC=2.75;                   /* 그림 배율: 1cm = 2.75px */
+/* 처음에는 사각형 뚜껑을 보여 준다. 0°가 사각형의 '가장 좁은 방향'이라 곧바로 빠지므로,
+   맨홀 뚜껑이 사각형이면 위험하다는 것을 첫 조작에서 바로 느낄 수 있다.
+   삼각형·육각형은 0°가 '가장 넓은 방향'이어서 각도를 돌려야 빠진다. */
+const MH={sel:1, ang:0, y:0, anim:null, dropped:false};
+
+/* 외접원 반지름 1인 정n각형을 a(라디안)만큼 돌렸을 때의 좌우 폭. 원(n<3)은 언제나 2. */
+function widthAt(n,a){
+  if(n<3) return 2;
+  const half=Math.PI/n; let mn=Infinity, mx=-Infinity;
+  for(let j=0;j<n;j++){
+    const th=Math.PI/2-half+j*(2*Math.PI/n)+a, x=Math.cos(th);
+    if(x<mn) mn=x;
+    if(x>mx) mx=x;
+  }
+  return mx-mn;
+}
+/* 폭의 최솟값·최댓값. 대칭각 한 구간(2π/n)만 촘촘히 훑으면 전 구간과 같다. */
+function widthRange(n){
+  if(n<3) return {min:2, max:2};
+  const span=2*Math.PI/n, N=1440; let mn=Infinity, mx=-Infinity;
+  for(let i=0;i<=N;i++){
+    const w=widthAt(n, span*i/N);
+    if(w<mn) mn=w;
+    if(w>mx) mx=w;
+  }
+  return {min:mn, max:mx};
+}
+/* 폭이 가장 넓어지는 각(라디안). 사람은 구멍을 만들 때 이 방향으로 파 두므로,
+   비스듬히 본 장면의 구멍을 이 각도로 돌려 놓는다.
+   짝수 n이라고 0°가 답이 아니다 — 사각형은 45°, 삼각형·육각형은 0°가 최대다. */
+function maxWidthAngle(n){
+  if(n<3) return 0;
+  const span=2*Math.PI/n, N=720; let best=0, bw=-Infinity;
+  for(let i=0;i<=N;i++){
+    const a=span*i/N, w=widthAt(n,a);
+    if(w>bw+1e-12){ bw=w; best=a; }
+  }
+  return best;
+}
+function mhLid(){ return MH_SHAPES[MH.sel]; }
+function mhNowW(){ return widthAt(mhLid().n, MH.ang*Math.PI/180)*(MH_LID_CM/2); }
+function mhMinW(){ return widthRange(mhLid().n).min*(MH_LID_CM/2); }
+function mhHoleW(){ return widthRange(mhLid().n).max*(MH_LID_CM/2)*MH_HOLE_K; }
+function mhFits(){ return mhNowW() < mhHoleW(); }        /* 지금 각도로 빠지는가 */
+function mhEverFits(){ return mhMinW() < mhHoleW(); }    /* 어떤 각도로든 빠질 수 있는가 */
+function fmtCm(v){ return (Math.round(v*10)/10).toFixed(1)+"cm"; }
+
+function mhPoly(g,n,R,a){
+  g.beginPath();
+  if(n>=3){
+    const half=Math.PI/n;
+    for(let j=0;j<n;j++){
+      const th=Math.PI/2-half+j*(2*Math.PI/n)+a;
+      const px=Math.cos(th)*R, py=-Math.sin(th)*R;
+      if(j===0) g.moveTo(px,py); else g.lineTo(px,py);
+    }
+    g.closePath();
+  } else { g.arc(0,0,R,0,Math.PI*2); }
+}
+function mhArrowH(g,x,y,dir){
+  g.beginPath(); g.moveTo(x,y); g.lineTo(x-8*dir,y-5); g.lineTo(x-8*dir,y+5); g.closePath(); g.fill();
+}
+function drawMh(){
+  const c=document.getElementById("cMh"); if(!c) return;
+  const g=c.getContext("2d"), W=c.width, H=c.height;
+  g.clearRect(0,0,W,H);
+  const s=mhLid(), n=s.n, R=(MH_LID_CM/2)*MH_SC, a=MH.ang*Math.PI/180;
+  const wNow=mhNowW(), holeW=mhHoleW(), fits=mhFits();
+
+  /* ── 왼쪽: 위에서 본 뚜껑과 구멍 ── */
+  /* 구멍은 뚜껑에 덮여 함께 돌아간다. 고정된 것은 폭을 재는 세로 자(캘리퍼)뿐이다. */
+  const cx=225, cy=222;
+  g.save(); g.translate(cx,cy);
+  mhPoly(g,n,R*MH_HOLE_K,a);
+  g.fillStyle="rgba(43,58,74,.10)"; g.fill();
+  g.strokeStyle="#2b3a4a"; g.lineWidth=2; g.setLineDash([7,6]); g.stroke(); g.setLineDash([]);
+  mhPoly(g,n,R,a);
+  g.fillStyle=s.soft; g.fill();
+  g.strokeStyle=s.col; g.lineWidth=4; g.lineJoin="round"; g.stroke();
+  g.restore();
+  const half=wNow*MH_SC/2;
+  g.save();
+  g.strokeStyle="#e07b00"; g.lineWidth=2; g.setLineDash([5,4]);
+  g.beginPath(); g.moveTo(cx-half,72); g.lineTo(cx-half,cy+R+10); g.stroke();
+  g.beginPath(); g.moveTo(cx+half,72); g.lineTo(cx+half,cy+R+10); g.stroke();
+  g.setLineDash([]); g.lineWidth=2.5; g.fillStyle="#e07b00";
+  g.beginPath(); g.moveTo(cx-half,88); g.lineTo(cx+half,88); g.stroke();
+  mhArrowH(g,cx-half,88,-1); mhArrowH(g,cx+half,88,1);
+  g.restore();
+  g.textAlign="center";
+  g.font="900 18px sans-serif"; g.fillStyle="#b25a00";
+  g.fillText("지금 폭 "+fmtCm(wNow), cx, 68);
+  g.font="bold 13.5px sans-serif"; g.fillStyle="#5b6b7d";
+  /* 아래 비스듬 장면의 바탕 판(y 352~)과 겹치지 않도록 348에 고정한다. */
+  g.fillText("위에서 본 모습 · 점선은 구멍 · 주황 자로 폭을 재요", cx, 348);
+
+  /* ── 오른쪽 위: 옆에서 본 단면 ── */
+  const gx=675, groundY=MH_G2Y, gapPx=holeW*MH_SC, barPx=wNow*MH_SC;
+  let by;
+  /* 빠질 때는 바탕 판 위(340)까지만 내려보내 아래 장면과 겹치지 않게 한다. */
+  if(!MH.dropped) by=110;
+  else if(fits) by=110+MH.y*(MH_BAR_END-110);
+  else by=110+MH.y*((groundY-7)-110);
+  g.save();
+  g.beginPath(); g.roundRect(gx-barPx/2, by-7, barPx, 14, 7);
+  g.fillStyle=s.col; g.fill();
+  g.strokeStyle="#ffffff"; g.lineWidth=1.5; g.stroke();
+  g.restore();
+  g.fillStyle="#dfe8f2"; g.strokeStyle="#b7c8d9"; g.lineWidth=2;
+  g.beginPath(); g.rect(478, groundY, (gx-gapPx/2)-478, 26); g.fill(); g.stroke();
+  g.beginPath(); g.rect(gx+gapPx/2, groundY, 872-(gx+gapPx/2), 26); g.fill(); g.stroke();
+  g.save();
+  g.strokeStyle="#2b3a4a"; g.fillStyle="#2b3a4a"; g.lineWidth=2;
+  /* 구멍 폭 화살표는 지면 띠 안에, 라벨은 띠 바로 아래에 두어 통과한 막대와 겹치지 않게 한다. */
+  g.beginPath(); g.moveTo(gx-gapPx/2, 261); g.lineTo(gx+gapPx/2, 261); g.stroke();
+  mhArrowH(g,gx-gapPx/2,261,-1); mhArrowH(g,gx+gapPx/2,261,1);
+  g.restore();
+  g.textAlign="center"; g.font="bold 14px sans-serif"; g.fillStyle="#2b3a4a";
+  g.fillText("구멍의 가장 넓은 곳 "+fmtCm(holeW), gx, 288);
+  g.font="900 18px sans-serif"; g.fillStyle=s.col;
+  g.fillText(s.ic+" "+s.name+" — 세워서 넣으면?", gx, 68);
+  g.font="bold 13.5px sans-serif"; g.fillStyle="#5b6b7d";
+  g.fillText("옆에서 본 모습 · 막대 길이가 지금 폭이에요", gx, 88);
+
+  /* ── 아래: 비스듬히 내려다본 낙하 장면 ── */
+  drawMhIso(g, s, n, a, wNow, fits);
+}
+
+/* ===== 비스듬히 본 낙하 장면 =====
+   옆에서 본 단면만으로는 '세워서 넣는다'는 것이 잘 보이지 않아, 같은 판정을 한 번 더
+   비스듬한 시점으로 보여 준다. 판정 기준은 바꾸지 않는다 — 지금 폭 < 구멍의 가장 넓은 곳. */
+const MH_G2Y=250;          /* 옆에서 본 단면의 지면 y */
+const MH_BAR_END=340;      /* 통과한 막대가 멈추는 y (아래 바탕 판 352보다 위) */
+const MH3={
+  cx:450, cy:545,          /* 비스듬 장면의 중심(구멍 자리) */
+  sc:MH_SC*0.72,           /* 아래 장면 배율. 위 장면보다 작게 잡아 한 캔버스에 담는다. */
+  k:0.42,                  /* 지면에 누운 도형의 세로 압축(원근) */
+  kv:0.821,                /* 세운 뚜껑의 세로 압축 (-sin72° + cos72°×0.42 의 크기) */
+  zUp:120,                 /* 시작 높이 — 뚜껑이 구멍 위에 확실히 떠 보이는 값 */
+  zFall:-110,              /* 빠졌을 때 — 구멍 아래로 사라진다 */
+  thick:5,                 /* 뚜껑 판의 두께(위쪽 가장자리에 보이는 만큼) */
+  panY:352, panH:276,      /* 바탕 판 */
+  gTopY:500, gBotY:596, gTopL:180, gTopR:720, gBotL:100, gBotR:800,   /* 지면 사다리꼴 */
+  msgY:622,
+  hitX:0                   /* 걸린 자리의 x 거리(중심에서). mhStuckZ가 채워 넣는다. */
+};
+/* 도형을 비스듬한 좌표로 그린다. 좌우 폭은 압축하지 않으므로 '지금 폭'과 정확히 같다. */
+function mhPathProj(g,n,R,a,cx,cy,ky){
+  const N=(n>=3)?n:96;
+  g.beginPath();
+  for(let j=0;j<N;j++){
+    const th=(n>=3) ? (Math.PI/2-Math.PI/n+j*(2*Math.PI/n)+a) : (j*2*Math.PI/N);
+    const X=cx+Math.cos(th)*R, Y=cy-Math.sin(th)*R*ky;
+    if(j===0) g.moveTo(X,Y); else g.lineTo(X,Y);
+  }
+  g.closePath();
+}
+/* 걸려서 멈추는 높이를 실제로 구한다.
+   뚜껑이 지나갈 수 있는 틈은 구멍의 가장 넓은 곳(2×hh)이다. 뚜껑 윤곽에서 그 틈보다
+   바깥으로 나온 점(|x| ≥ hh)이 지면에 닿는 순간 멈추므로, 그런 점들 가운데 가장 아래
+   있는 점의 깊이가 곧 멈추는 높이다. 모양과 돌린 각도마다 값이 달라진다.
+   - 아래가 좁은 삼각형은 깊이 들어갔다가 위쪽 넓은 데가 걸려 z가 음수가 되기도 한다.
+   - 사각형을 대각선으로 세우면 좌우가 곧바로 걸려 거의 들어가지 못한다.
+   좌표는 화면 좌표다(가로는 그대로, 세로는 kv로 압축). */
+/* 뚜껑이 지나갈 수 있는 틈의 반폭(px). 구멍은 뚜껑의 93% 크기이므로
+   그 구멍의 '가장 넓은 곳'의 절반이다. 육각형·사각형·원은 0.93R, 삼각형은 0.805R이 된다. */
+function mhHoleHalf(n,R){ return R*MH_HOLE_K*widthRange(n).max/2; }
+function mhStuckZ(n,a,R,kv,hh){
+  if(hh>=R-1e-9) return 0;
+  if(n<3){                                     /* 원 — |x|=hh 인 점이 가장 아래다 */
+    const s=Math.sqrt(Math.max(0,1-(hh/R)*(hh/R)));
+    MH3.hitX=hh;
+    return R*kv*s;
+  }
+  const P=[];
+  for(let j=0;j<n;j++){
+    const th=Math.PI/2-Math.PI/n+j*(2*Math.PI/n)+a;
+    P.push([Math.cos(th)*R, Math.sin(th)*R*kv]);   /* y는 위가 +  */
+  }
+  let lo=Infinity, hx=hh;
+  const put=function(x,y){ if(Math.abs(x)>=hh-1e-6 && y<lo){ lo=y; hx=Math.abs(x); } };
+  for(let j=0;j<n;j++){
+    const p=P[j], q=P[(j+1)%n], dx=q[0]-p[0];
+    put(p[0],p[1]);
+    if(Math.abs(dx)>1e-9){
+      [hh,-hh].forEach(function(xc){
+        const t=(xc-p[0])/dx;
+        if(t>0 && t<1) put(xc, p[1]+t*(q[1]-p[1]));
+      });
+    }
+  }
+  MH3.hitX=hx;                                  /* 걸린 자리 표시에 쓴다 */
+  return (lo===Infinity)?0:-lo;
+}
+/* 지금 프레임의 뚜껑 높이 z. 지면(구멍면)이 z=0이다. */
+function mhIsoZ(fits){
+  if(!MH.dropped) return MH3.zUp;
+  let t;
+  if(fits) t=MH3.zFall;
+  else{
+    const s=mhLid(), R=(MH_LID_CM/2)*MH3.sc;
+    t=mhStuckZ(s.n, MH.ang*Math.PI/180, R, MH3.kv, mhHoleHalf(s.n,R));
+  }
+  return MH3.zUp + MH.y*(t-MH3.zUp);
+}
+function drawMhIso(g,s,n,a,wNow,fits){
+  const M=MH3, R=(MH_LID_CM/2)*M.sc, Rh=R*MH_HOLE_K, z=mhIsoZ(fits);
+  const ah=maxWidthAngle(n);          /* 구멍은 가장 넓은 방향으로 파 놓는다 */
+
+  g.save();
+  g.beginPath(); g.roundRect(16,M.panY,868,M.panH,16);
+  g.fillStyle="#f7fafe"; g.fill();
+  g.strokeStyle="#e3ecf6"; g.lineWidth=1.5; g.stroke();
+  g.restore();
+  g.textAlign="left"; g.font="bold 13.5px sans-serif"; g.fillStyle="#5b6b7d";
+  g.fillText("비스듬히 본 모습 · 세운 뚜껑을 구멍에 떨어뜨려요", 40, 380);
+  g.fillStyle="#2b3a4a";
+  g.fillText("구멍의 가장 넓은 쪽으로", 48, 440);
+  g.fillText("맞춰 넣어요", 48, 458);
+
+  /* 1. 지면 */
+  g.beginPath();
+  g.moveTo(M.gTopL,M.gTopY); g.lineTo(M.gTopR,M.gTopY);
+  g.lineTo(M.gBotR,M.gBotY); g.lineTo(M.gBotL,M.gBotY); g.closePath();
+  g.fillStyle="#dfe8f2"; g.fill();
+  g.strokeStyle="#b7c8d9"; g.lineWidth=2; g.stroke();
+  /* 2. 구멍 안쪽 */
+  mhPathProj(g,n,Rh,ah,M.cx,M.cy,M.k);
+  g.fillStyle="#2b3a4a"; g.fill();
+  /* 뚜껑은 얇은 판이다. 비스듬히 내려다보므로 두께가 위쪽 가장자리에 나타난다. */
+  const drawLid=function(){
+    mhPathProj(g,n,R,a,M.cx,M.cy-z-M.thick,M.kv);
+    g.fillStyle=s.col; g.fill();
+    mhPathProj(g,n,R,a,M.cx,M.cy-z,M.kv);
+    g.fillStyle="#ffffff"; g.fill();          /* 뒷면이 비쳐 보이지 않도록 앞면을 먼저 덮는다 */
+    g.fillStyle=s.soft; g.fill();
+    g.strokeStyle=s.col; g.lineWidth=3.5; g.lineJoin="round"; g.stroke();
+  };
+  /* 3. 구멍 높이보다 아래로 내려간 부분은 구멍 안에서만 보인다 */
+  g.save(); mhPathProj(g,n,Rh,ah,M.cx,M.cy,M.k); g.clip(); drawLid(); g.restore();
+  /* 4. 구멍 테두리 */
+  mhPathProj(g,n,Rh,ah,M.cx,M.cy,M.k);
+  g.strokeStyle="#1b2733"; g.lineWidth=2.5; g.stroke();
+  /* 5. 지면보다 위로 솟은 부분 — 관찰자 쪽(아래쪽) 지면은 뚜껑을 가린다 */
+  g.save(); g.beginPath(); g.rect(0,0,900,M.cy); g.clip(); drawLid(); g.restore();
+  /* 5-1. 지면 아래로 잠긴 부분은 흙에 가려 보이지 않는다. 다만 뚜껑이 어디까지 들어갔는지
+     알 수 있도록 옅은 점선 윤곽만 남긴다(도면에서 숨은 선을 긋는 것과 같다).
+     그린 뒤 구멍 안쪽을 한 번 더 덮어, 구멍으로 보이는 자리에는 점선이 겹치지 않게 한다. */
+  if(M.cy-z+R*M.kv > M.cy+2){
+    g.save();
+    g.beginPath(); g.rect(0,M.cy,900,(M.panY+M.panH-4)-M.cy); g.clip();
+    g.setLineDash([4,4]); g.strokeStyle="rgba(43,58,74,.32)"; g.lineWidth=2;
+    mhPathProj(g,n,R,a,M.cx,M.cy-z,M.kv); g.stroke();
+    g.restore();
+    g.save(); mhPathProj(g,n,Rh,ah,M.cx,M.cy,M.k); g.clip(); drawLid(); g.restore();
+    mhPathProj(g,n,Rh,ah,M.cx,M.cy,M.k);
+    g.strokeStyle="#1b2733"; g.lineWidth=2.5; g.stroke();
+  }
+  /* 6. 폭 견주기 안내선과 낙하 방향 화살표 — 뚜껑이 아직 지면 위에 온전히 떠 있을 때만 */
+  const hw=wNow*M.sc/2, botY=M.cy-z+R*M.kv;
+  if(botY < M.cy-6){
+    g.save(); g.setLineDash([5,5]); g.strokeStyle="rgba(224,123,0,.85)"; g.lineWidth=2;
+    g.beginPath(); g.moveTo(M.cx-hw,botY); g.lineTo(M.cx-hw,M.cy+6); g.stroke();
+    g.beginPath(); g.moveTo(M.cx+hw,botY); g.lineTo(M.cx+hw,M.cy+6); g.stroke();
+    g.restore();
+    if(botY+14 < M.cy-18){
+      g.save();
+      g.strokeStyle="#8aa0b6"; g.fillStyle="#8aa0b6"; g.lineWidth=3;
+      g.beginPath(); g.moveTo(M.cx,botY+10); g.lineTo(M.cx,M.cy-24); g.stroke();
+      g.beginPath(); g.moveTo(M.cx,M.cy-14); g.lineTo(M.cx-7,M.cy-26); g.lineTo(M.cx+7,M.cy-26);
+      g.closePath(); g.fill();
+      g.restore();
+    }
+  }
+  /* 7. 걸린 자리 — 구멍 테두리에 얹힌 두 지점을 점으로 찍는다.
+     멈추는 깊이는 모양·각도마다 다르므로, 어디가 걸렸는지 보여야 뜻이 통한다. */
+  if(MH.dropped && !fits && MH.y>=1){
+    const hx=M.hitX||0;
+    g.save(); g.fillStyle="#c0392b";
+    [-1,1].forEach(function(sgn){
+      g.beginPath(); g.arc(M.cx+sgn*hx, M.cy, 4.5, 0, 7); g.fill();
+    });
+    g.restore();
+  }
+  /* 판정 문구 — 잠긴 부분의 점선이 글자에 닿을 수 있으므로 흰 바탕을 깔고 쓴다 */
+  if(MH.dropped && MH.y>=1){
+    const msg=fits?"쑥! 빠졌어요":"걸렸어요 — 빠지지 않아요";
+    g.textAlign="center"; g.font="900 19px sans-serif";
+    const tw=g.measureText(msg).width;
+    g.save();
+    g.beginPath(); g.roundRect(M.cx-tw/2-10, M.msgY-19, tw+20, 26, 8);
+    g.fillStyle="rgba(255,255,255,.90)"; g.fill();
+    g.restore();
+    g.fillStyle=fits?"#0b8f63":"#c0392b";
+    g.fillText(msg, M.cx, M.msgY);
+  }
+  g.textAlign="center";
+}
+function buildMhChips(){
+  const w=document.getElementById("mhchips"); if(!w) return;
+  w.innerHTML="";
+  MH_SHAPES.forEach(function(s,i){
+    const el=document.createElement("div");
+    el.className="chip"+(i===MH.sel?" sel":"");
+    el.setAttribute("role","button"); el.setAttribute("tabindex","0");
+    el.setAttribute("aria-pressed", i===MH.sel?"true":"false");
+    el.setAttribute("aria-label", s.name+" 고르기");
+    el.innerHTML='<span class="ic" style="color:'+s.col+'">'+s.ic+'</span>'+s.name;
+    const pick=function(){ MH.sel=i; resetMh(); };
+    el.onclick=pick;
+    el.onkeydown=function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); } };
+    w.appendChild(el);
+  });
+}
+function mhReadouts(){
+  const set=function(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; };
+  set("mhNow", fmtCm(mhNowW()));
+  set("mhMin", fmtCm(mhMinW()));
+  set("mhHole", fmtCm(mhHoleW()));
+  const an=document.getElementById("mhAngN"); if(an) an.textContent=MH.ang;
+}
+function onMhAngle(){
+  const el=document.getElementById("mhAng"); if(!el) return;
+  MH.ang=+el.value;
+  if(MH.dropped){ MH.dropped=false; MH.y=0; if(MH.anim){ cancelAnimationFrame(MH.anim); MH.anim=null; } }
+  const b=document.getElementById("mhDrop"); if(b) b.disabled=false;
+  const ins=document.getElementById("mhInsight"); if(ins){ ins.classList.remove("show"); ins.innerHTML=""; }
+  mhReadouts(); drawMh();
+}
+function resetMh(){
+  if(MH.anim){ cancelAnimationFrame(MH.anim); MH.anim=null; }
+  MH.ang=0; MH.y=0; MH.dropped=false;
+  const el=document.getElementById("mhAng"); if(el) el.value=0;
+  const b=document.getElementById("mhDrop"); if(b) b.disabled=false;
+  const ins=document.getElementById("mhInsight"); if(ins){ ins.classList.remove("show"); ins.innerHTML=""; }
+  const h=document.getElementById("mhHint");
+  if(h) h.innerHTML='🔄 <b>각도를 돌려 보세요.</b> 폭이 어떻게 달라지는지 숫자로 볼 수 있어요.';
+  buildMhChips(); mhReadouts(); drawMh();
+}
+function dropLid(){
+  if(MH.dropped) return;
+  MH.dropped=true; MH.y=0;
+  const b=document.getElementById("mhDrop"); if(b) b.disabled=true;
+  const dur=900, t0=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+  if(MH.anim) cancelAnimationFrame(MH.anim);
+  (function step(now){
+    const k=Math.min(1,(now-t0)/dur);
+    MH.y=k*k;
+    drawMh();
+    if(k<1){ MH.anim=requestAnimationFrame(step); }
+    else{ MH.anim=null; MH.y=1; drawMh(); finishMh(); }
+  })(t0);
+}
+function finishMh(){
+  const s=mhLid(), ins=document.getElementById("mhInsight"), h=document.getElementById("mhHint");
+  const fits=mhFits();
+  if(ins){
+    if(s.n<3){
+      ins.innerHTML='😀 <b>원 뚜껑은 걸렸어요.</b> 각도를 아무리 바꿔도 폭이 <b>'+fmtCm(mhNowW())+'</b> 그대로여서, 구멍보다 좁아지는 방향이 없어요.';
+    } else if(fits){
+      ins.innerHTML='😮 <b>빠졌어요!</b> 이 각도의 폭 '+fmtCm(mhNowW())+'은(는) 구멍의 가장 넓은 곳 '+fmtCm(mhHoleW())+'보다 좁아요.<br>'+s.name+'은 <b>가장 좁을 때 '+fmtCm(mhMinW())+'</b>까지 줄어들어요.';
+    } else {
+      ins.innerHTML='🙂 이 각도에서는 걸렸어요. 하지만 각도를 더 돌려 폭이 <b>'+fmtCm(mhMinW())+'</b>까지 줄어들면 빠져요. 돌려서 다시 넣어 보세요!';
+    }
+    ins.classList.add("show");
+  }
+  if(h) h.innerHTML='🔁 <b>다른 모양</b>으로도 해 보세요. 폭이 <u>한 번도</u> 좁아지지 않는 모양은 무엇일까요?';
+}
+
+/* ===== 미션 1 갈래 ③ — 지름 하나면 충분 ===== */
+function drawDia(){
+  const c=document.getElementById("cDia"); if(!c) return;
+  const g=c.getContext("2d"), W=c.width, H=c.height;
+  g.clearRect(0,0,W,H);
+  const el=document.getElementById("diaR"), d=el?+el.value:10;
+  const n=document.getElementById("diaN"); if(n) n.textContent=d;
+  const SC=15, R=d*SC/2, cx=250, cy=200;
+  g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2);
+  g.fillStyle="rgba(47,127,224,.14)"; g.fill();
+  g.strokeStyle="#2f7fe0"; g.lineWidth=4; g.stroke();
+  g.save(); g.setLineDash([6,5]); g.lineWidth=2; g.strokeStyle="rgba(30,95,176,.5)";
+  for(let j=1;j<6;j++){
+    const th=j*Math.PI/6;
+    g.beginPath();
+    g.moveTo(cx-Math.cos(th)*R, cy+Math.sin(th)*R);
+    g.lineTo(cx+Math.cos(th)*R, cy-Math.sin(th)*R);
+    g.stroke();
+  }
+  g.restore();
+  g.strokeStyle="#e07b00"; g.lineWidth=3.5;
+  g.beginPath(); g.moveTo(cx-R,cy); g.lineTo(cx+R,cy); g.stroke();
+  g.fillStyle="#1e5fb0"; g.beginPath(); g.arc(cx,cy,5,0,Math.PI*2); g.fill();
+  g.textAlign="center";
+  g.font="900 19px sans-serif"; g.fillStyle="#b25a00";
+  g.fillText("지름 "+d+"cm", cx, cy-R-16);
+  g.font="bold 13.5px sans-serif"; g.fillStyle="#5b6b7d";
+  g.fillText("어느 방향으로 재도 길이가 똑같아요", cx, cy+R+26);
+  g.textAlign="left";
+  g.font="900 21px sans-serif"; g.fillStyle="#1e5fb0";
+  g.fillText("지름 "+d+"cm를 정하는 순간,", 545, 106);
+  g.fillText("이 원은 세상에 딱 하나예요.", 545, 136);
+  g.font="900 20px sans-serif"; g.fillStyle="#e07b00";
+  g.fillText("그러면 둘레는?", 545, 196);
+  g.fillText("넓이는?", 725, 196);
+  g.font="900 60px sans-serif"; g.fillStyle="rgba(224,123,0,.30)";
+  g.textAlign="center";
+  g.fillText("?", 600, 268);
+  g.fillText("?", 760, 268);
+  g.textAlign="left";
+  g.font="bold 14px sans-serif"; g.fillStyle="#5b6b7d";
+  g.fillText("아직은 물음표 — 미션 2와 3에서 직접 찾아봐요.", 545, 312);
+}
+
+/* ===== 정리 화면 그림 ① — 오늘 발견한 세 가지 요약 ===== */
+function sumBadge(g,x,y,t,col){
+  g.beginPath(); g.arc(x,y,13,0,Math.PI*2); g.fillStyle=col; g.fill();
+  g.fillStyle="#ffffff"; g.font="900 15px sans-serif";
+  g.textAlign="center"; g.textBaseline="middle"; g.fillText(t,x,y+1); g.textBaseline="alphabetic";
+}
+function sumCaption(g,cx,t,col){
+  g.textAlign="center"; g.font="900 13.5px sans-serif"; g.fillStyle=col; g.fillText(t,cx,228);
+}
+function drawSum(){
+  const c=document.getElementById("cSum"); if(!c) return;
+  const g=c.getContext("2d"), W=c.width, H=c.height;
+  g.clearRect(0,0,W,H);
+  const X=[25,320,615], CW=260;
+  X.forEach(function(x){
+    g.beginPath(); g.roundRect(x,10,CW,H-20,16);
+    g.fillStyle="#f7fafe"; g.fill();
+    g.strokeStyle="#e3ecf6"; g.lineWidth=1.5; g.stroke();
+  });
+
+  /* ① 어느 방향으로 재도 폭이 같다 */
+  {
+    const cx=155, cy=132, R=50;
+    g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2);
+    g.fillStyle="rgba(47,127,224,.14)"; g.fill();
+    g.strokeStyle="#2f7fe0"; g.lineWidth=3.5; g.stroke();
+    g.save(); g.setLineDash([5,4]); g.lineWidth=1.8; g.strokeStyle="rgba(30,95,176,.55)";
+    for(let j=0;j<6;j++){
+      const th=j*Math.PI/6;
+      g.beginPath();
+      g.moveTo(cx-Math.cos(th)*R, cy+Math.sin(th)*R);
+      g.lineTo(cx+Math.cos(th)*R, cy-Math.sin(th)*R);
+      g.stroke();
+    }
+    g.restore();
+    g.save();
+    g.strokeStyle="#e07b00"; g.fillStyle="#e07b00"; g.lineWidth=2;
+    g.setLineDash([4,3]);
+    g.beginPath(); g.moveTo(cx-R,64); g.lineTo(cx-R,cy+R+6); g.stroke();
+    g.beginPath(); g.moveTo(cx+R,64); g.lineTo(cx+R,cy+R+6); g.stroke();
+    g.setLineDash([]);
+    g.beginPath(); g.moveTo(cx-R,74); g.lineTo(cx+R,74); g.stroke();
+    mhArrowH(g,cx-R,74,-1); mhArrowH(g,cx+R,74,1);
+    g.restore();
+    sumBadge(g,52,34,"1","#2f7fe0");
+    sumCaption(g,cx,"어느 방향으로 재도 폭이 같아요","#1e5fb0");
+  }
+  /* ② 크기가 달라도 둘레 ÷ 지름은 늘 같다 */
+  {
+    const x0=350;
+    [[14,88,92],[24,151,162]].forEach(function(o){
+      const R=o[0], L=o[1], y=o[2];
+      g.beginPath(); g.arc(x0+R,y,R,0,Math.PI*2);
+      g.fillStyle="rgba(15,158,143,.14)"; g.fill();
+      g.strokeStyle="#0f9e8f"; g.lineWidth=3; g.stroke();
+      g.beginPath(); g.moveTo(x0,y+R+10); g.lineTo(x0+L,y+R+10);
+      g.strokeStyle="#e07b00"; g.lineWidth=6; g.lineCap="round"; g.stroke(); g.lineCap="butt";
+      g.textAlign="left"; g.font="bold 12px sans-serif"; g.fillStyle="#b25a00";
+      g.fillText("= 둘레", x0+L+7, y+R+14);
+    });
+    g.textAlign="center"; g.font="900 17px sans-serif"; g.fillStyle="#e07b00";
+    g.fillText("둘레 ÷ 지름 = 약 3.14", 450, 40);
+    sumBadge(g,347,34,"2","#0f9e8f");
+    sumCaption(g,450,"크기가 달라도 값이 늘 같아요","#0b7d71");
+  }
+  /* ③ 잘라 옮기면 직사각형이 된다 */
+  {
+    const cx=666, cy=120, R=38, N=10;
+    for(let j=0;j<N;j++){
+      const a0=j*2*Math.PI/N, a1=(j+1)*2*Math.PI/N;
+      g.beginPath(); g.moveTo(cx,cy); g.arc(cx,cy,R,a0,a1); g.closePath();
+      g.fillStyle=(j%2)?"rgba(224,123,0,.30)":"rgba(224,123,0,.14)"; g.fill();
+      g.strokeStyle="#e07b00"; g.lineWidth=1.4; g.stroke();
+    }
+    g.save();
+    g.strokeStyle="#8aa0b6"; g.fillStyle="#8aa0b6"; g.lineWidth=3;
+    g.beginPath(); g.moveTo(712,cy); g.lineTo(726,cy); g.stroke();
+    g.beginPath(); g.moveTo(736,cy); g.lineTo(724,cy-6); g.lineTo(724,cy+6); g.closePath(); g.fill();
+    g.restore();
+    const rx=748, ry=cy-32, rw=96, rh=64, M=6;
+    for(let j=0;j<M;j++){
+      g.beginPath(); g.rect(rx+j*(rw/M), ry, rw/M, rh);
+      g.fillStyle=(j%2)?"rgba(224,123,0,.30)":"rgba(224,123,0,.14)"; g.fill();
+      g.strokeStyle="#e07b00"; g.lineWidth=1.4; g.stroke();
+    }
+    g.beginPath(); g.rect(rx,ry,rw,rh);
+    g.strokeStyle="#e07b00"; g.lineWidth=3; g.stroke();
+    g.textAlign="center"; g.font="bold 12px sans-serif"; g.fillStyle="#b25a00";
+    g.fillText("가로", rx+rw/2, ry+rh+16);
+    g.save(); g.translate(rx+rw+16, ry+rh/2); g.rotate(-Math.PI/2);
+    g.textBaseline="middle"; g.fillText("세로", 0, 0); g.textBaseline="alphabetic"; g.restore();
+    sumBadge(g,642,34,"3","#e07b00");
+    sumCaption(g,745,"잘라 옮기면 직사각형이 돼요","#b25a00");
+  }
+}
+
+/* ===== 정리 화면 그림 ② — 지구를 감은 밧줄 =====
+   실제 비율로는 지구 둘레 4만 km에 1m를 더한 틈(약 16cm)이 보이지 않는다.
+   그래서 틈만 크게 부풀려 그리고, 부풀렸다는 것을 화면에 밝힌다.
+   여기서 중요한 것은 '자전거 바퀴든 지구든 틈이 똑같다'이므로 두 틈을 같은 두께로 그린다.
+
+   실측값(원주율을 3.14로 두고 계산한 값. 그림 아래 표와 같은 값이다)
+     자전거 바퀴  지름 0.66m → 둘레 2.0724m · 반지름 0.3300m
+                 1m 이은 뒤   둘레 3.0724m · 반지름 0.4892m
+     지구        둘레 40,000,000m → 반지름 6,369,426.7516m
+                 1m 이은 뒤   둘레 40,000,001m · 반지름 6,369,426.9108m
+   두 경우 모두 반지름이 1÷(2×3.14)=0.1592m 늘어난다. 처음 반지름이 식에서 지워지기 때문이다. */
+const ROPE={t:0, anim:null};
+const ROPE_GAP=22;                 /* 부풀린 틈(px). 두 물체에 똑같이 준다. */
+const ROPE_RISE="반지름이 0.1592m 늘었어요";
+function drawRope(){
+  const c=document.getElementById("cRope"); if(!c) return;
+  const g=c.getContext("2d"), W=c.width, H=c.height;
+  g.clearRect(0,0,W,H);
+  const gap=ROPE_GAP*ROPE.t, cy=170, maxR=100;
+  g.textAlign="center"; g.font="900 17px sans-serif"; g.fillStyle="#1e5fb0";
+  g.fillText(ROPE.t>0.99 ? "밧줄을 1m 늘렸더니 — 뜬 높이가 똑같아요!" : "밧줄을 딱 맞게 감았어요. 여기에 1m만 더 잇는다면?", 450, 30);
+  [
+    {cx:230, R:56,  nm:"자전거 바퀴 · 둘레 약 2.07m", r0:"반지름 0.33m",
+     fill:"rgba(90,95,102,.16)", col:"#4a5058", wheel:true},
+    {cx:650, R:100, nm:"지구 · 둘레 약 40,000km",     r0:"반지름 약 6,369km",
+     fill:"rgba(47,127,224,.18)", col:"#2f7fe0"}
+  ].forEach(function(o){
+    if(o.wheel){
+      /* 미션 2 에서 굴려 본 그 바퀴를 그대로 쓴다. 같은 물체임이 한눈에 보인다. */
+      g.save(); g.translate(o.cx,cy); drawWheel(g,o.R); g.restore();
+    }else{
+      g.beginPath(); g.arc(o.cx,cy,o.R,0,Math.PI*2);
+      g.fillStyle=o.fill; g.fill();
+      g.strokeStyle=o.col; g.lineWidth=3; g.stroke();
+    }
+    /* 밧줄 */
+    g.save();
+    g.beginPath(); g.arc(o.cx,cy,o.R+gap,0,Math.PI*2);
+    g.strokeStyle="#8b5a2b"; g.lineWidth=4.5; g.setLineDash([10,6]); g.stroke();
+    g.restore();
+    /* 틈 표시 */
+    /* 틈은 원의 오른쪽 옆(3시 방향)에 표시한다. 밧줄 곡선 위에 글자가 얹히지 않는 자리다. */
+    if(gap>3){
+      g.save();
+      g.strokeStyle="#c0392b"; g.fillStyle="#c0392b"; g.lineWidth=2;
+      const xA=o.cx+o.R, xB=o.cx+o.R+gap;
+      g.beginPath(); g.moveTo(xA,cy); g.lineTo(xB,cy); g.stroke();
+      g.beginPath(); g.moveTo(xA+1,cy-7); g.lineTo(xA+1,cy+7); g.stroke();
+      g.beginPath(); g.moveTo(xB-1,cy-7); g.lineTo(xB-1,cy+7); g.stroke();
+      g.textAlign="left"; g.font="900 14px sans-serif";
+      g.fillText("약 16cm", xB+9, cy+5);
+      g.restore();
+    }
+    /* 이름과 반지름은 원 아래에 둔다. 위쪽은 틈 표시가 쓰는 자리다.
+       두 물체의 원 크기가 다르므로 큰 원(maxR)에 맞추어 두 글줄을 같은 높이에 나란히 놓는다. */
+    g.textAlign="center"; g.font="900 15px sans-serif"; g.fillStyle=o.col;
+    g.fillText(o.nm, o.cx, cy+maxR+ROPE_GAP+30);
+    g.font="bold 14px sans-serif"; g.fillStyle = gap>3 ? "#c0392b" : "#5b6b7d";
+    g.fillText(gap>3 ? ROPE_RISE : o.r0, o.cx, cy+maxR+ROPE_GAP+52);
+  });
+  g.textAlign="center"; g.font="bold 13px sans-serif"; g.fillStyle="#5b6b7d";
+  g.fillText("※ 두 원의 크기도, 틈도 실제 비율이 아니에요 — 눈에 보이도록 크게 부풀려 그렸어요.", 450, 386);
+}
+/* 그림 아래 실측표 — 1m 를 잇기 전에는 뒤쪽 세 줄을 물음표로 가려 둔다. */
+function fillRopeTable(show){
+  const t=document.getElementById("ropeTbl"); if(!t) return;
+  const cells=t.querySelectorAll("td[data-v]");
+  for(let i=0;i<cells.length;i++){
+    cells[i].textContent = show ? cells[i].getAttribute("data-v") : "?";
+  }
+}
+function animRope(){
+  if(ROPE.anim) cancelAnimationFrame(ROPE.anim);
+  const b=document.getElementById("ropeBtn"); if(b) b.disabled=true;
+  const dur=900, t0=(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+  (function step(now){
+    const k=Math.min(1,(now-t0)/dur);
+    ROPE.t=1-(1-k)*(1-k);
+    drawRope();
+    if(k<1){ ROPE.anim=requestAnimationFrame(step); }
+    else{ ROPE.anim=null; ROPE.t=1; drawRope(); fillRopeTable(true); }
+  })(t0);
+}
+function resetRope(){
+  if(ROPE.anim){ cancelAnimationFrame(ROPE.anim); ROPE.anim=null; }
+  ROPE.t=0;
+  const b=document.getElementById("ropeBtn"); if(b) b.disabled=false;
+  drawRope(); fillRopeTable(false);
+}
+
+/* 미션 2 조각 누르기 */
+c2.addEventListener("click", onM2Click);
+c2.style.cursor="pointer";
+
+buildChips(); drawM1(0);
+m2ResetAll(); drawM2(); updateMorphBtn();
+buildM3Chips(); updateM3Btns(); drawM3();
+buildMhChips(); resetMh(); drawDia();
+drawSum(); resetRope();
+playHero();   /* 도입 히어로 그림 — 첫 화면에서도 그려지도록 한다 */
+</script>
+
+<div style="text-align:center;font-size:12px;color:#8a8f98;line-height:1.5;padding:18px 16px 24px;font-family:system-ui,sans-serif">Made by Sangtae Jeong<br>ver 261117_2333</div>
+</body>
+</html>

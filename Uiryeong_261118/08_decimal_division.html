@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소수의 나눗셈 6-2-3</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --ink:#1b2430; --sub:#5c6b7f; --line:#dce3ee;
+  --brand:#2a62d8; --brand-soft:#e8efff; --ok:#12805c; --ok-soft:#e2f5ee;
+  --bad:#c62c3f; --bad-soft:#fdeaec; --warn:#b7791f; --accent:#7a3fd8; --accent-soft:#efe6ff;
+  --shadow:0 1px 2px rgba(20,30,50,.06), 0 8px 24px rgba(20,30,50,.07);
+  --r:14px;
+  --kpw:252px;                      /* 오른쪽 숫자판 너비 */
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11151d; --card:#1a212c; --ink:#e8edf5; --sub:#9aa8bd; --line:#2b3545;
+    --brand:#7aa2ff; --brand-soft:#1e2a44; --ok:#5fd3ab; --ok-soft:#14322a;
+    --bad:#ff8c9b; --bad-soft:#3a1c22; --warn:#e0b25c; --accent:#b998ff; --accent-soft:#2a2140;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11151d; --card:#1a212c; --ink:#e8edf5; --sub:#9aa8bd; --line:#2b3545;
+  --brand:#7aa2ff; --brand-soft:#1e2a44; --ok:#5fd3ab; --ok-soft:#14322a;
+  --bad:#ff8c9b; --bad-soft:#3a1c22; --warn:#e0b25c; --accent:#b998ff; --accent-soft:#2a2140;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,sans-serif;
+  line-height:1.6; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 56px}
+header.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 14px}
+header.top h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.02em}
+header.top .tag{font-size:12px;color:var(--sub);background:var(--card);border:1px solid var(--line);
+  padding:3px 9px;border-radius:999px}
+header.top .spacer{flex:1}
+.iconbtn{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:10px;
+  padding:6px 10px;font-size:13px;cursor:pointer;font-family:inherit}
+.iconbtn:hover{color:var(--ink);border-color:var(--brand)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.sec-title{font-size:13px;font-weight:700;color:var(--sub);margin:18px 2px 8px;letter-spacing:.02em}
+.sec-title .src{font-weight:500;opacity:.85}
+.sec-title.hot{color:var(--accent)}
+
+/* ---- 메뉴 ---- */
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.mi{padding:12px 13px;text-align:left;cursor:pointer;font-family:inherit;color:inherit;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:7px;transition:transform .08s,border-color .12s}
+.mi:hover{border-color:var(--brand);transform:translateY(-1px)}
+.mi .n{font-size:11px;font-weight:700;color:var(--brand);letter-spacing:.06em}
+.mi .t{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.mi .d{font-size:12px;color:var(--sub);line-height:1.45}
+.mi .bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.mi .bar > i{display:block;height:100%;background:var(--brand);width:0%;transition:width .3s}
+.mi.done .bar > i{background:var(--ok)}
+.mi .st{font-size:11px;color:var(--sub);display:flex;justify-content:space-between}
+.mi.done .st b{color:var(--ok)}
+.mi.big{grid-column:1/-1;background:linear-gradient(135deg,var(--brand-soft),var(--card))}
+.mi.est{border-color:var(--accent)}
+.mi.est .n{color:var(--accent)}
+
+/* ---- 문제 화면 ---- */
+.bar-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;
+  font-size:12.5px;cursor:pointer;font-family:inherit;color:var(--sub)}
+.stat{margin-left:auto;font-size:12.5px;color:var(--sub);display:flex;gap:12px;flex-wrap:wrap}
+.stat b{color:var(--ink)}
+.stat .streak b{color:var(--accent)}
+
+.qcard{padding:20px 18px 18px;margin-bottom:12px}
+.qhead{font-size:13px;color:var(--brand);font-weight:700;margin-bottom:4px}
+.qtext{font-size:16.5px;font-weight:600;margin-bottom:16px;letter-spacing:-.01em}
+.qbody{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:23px;font-weight:600;
+  font-variant-numeric:tabular-nums;line-height:1.9}
+.qbody.small{font-size:19px}
+.qbody.pre{margin-bottom:8px}
+.qbody.post{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.qbody.show{justify-content:center;font-size:26px;margin-bottom:14px}
+
+/* 답 칸 — 입력 요소(input)가 아닌 표시 칸이다. 기기 키보드가 뜨지 않는다. */
+.slot{
+  display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;
+  min-width:3.6em;height:1.75em;font-size:inherit;font-weight:700;font-family:inherit;line-height:1;
+  border:2px solid var(--brand);border-radius:8px;background:var(--card);color:var(--ink);
+  padding:0 .22em;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.slot.w2{min-width:2.6em}
+.slot.w1{min-width:1.7em;width:1.7em}
+.slot.ok{border-color:var(--ok);background:var(--ok-soft)}
+.slot.bad{border-color:var(--bad);background:var(--bad-soft)}
+.slot.dis{cursor:default}
+.slot.cur{border-color:var(--accent);box-shadow:0 0 0 3px var(--brand-soft);background:var(--brand-soft)}
+.slot.cur::after{content:"";display:inline-block;width:2px;height:.9em;margin-left:1px;
+  background:var(--accent);animation:slotblink 1s steps(1) infinite}
+@keyframes slotblink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){ .slot.cur::after{animation:none} }
+
+/* 분수 */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+  margin:0 2px;font-size:.82em}
+.frac > span{display:block}
+.frac > .slot{display:flex;margin:0 auto}
+.frac .fl{border-top:2.5px solid currentColor;width:100%;min-width:2.2em;margin:2px 0}
+
+/* 수직선 그림 */
+.nl{flex-basis:100%;max-width:620px}
+.nl svg{display:block;width:100%;height:auto}
+
+/* 세로셈 */
+.ldwrap{display:flex;justify-content:center;padding:6px 0 2px}
+.ld{display:grid;justify-content:center;font-variant-numeric:tabular-nums;
+  font-size:26px;font-weight:700;line-height:1.35}
+.ld .c{display:flex;align-items:center;justify-content:center;min-height:1.5em}
+.ld .c.dot{min-width:.42em;width:.42em}
+.ld .c.dg{min-width:1.32em;width:1.32em}
+.ld .c.dv{min-width:1.9em;padding-right:2px;justify-content:flex-end}
+.ld .c.br{min-width:.52em;width:.52em;justify-content:flex-start}
+.ld .c.top{border-top:2.5px solid var(--ink)}
+.ld .c.rule{border-bottom:2.5px solid var(--ink)}
+.ld .slot{position:relative;min-width:1.12em;width:1.12em;height:1.28em;font-size:.86em;border-width:2px;border-radius:6px;padding:0}
+.ld .slot.cur::after{position:absolute;right:2px;bottom:18%;height:.7em;margin:0}
+.ld .qd{color:var(--brand)}
+.ld .pv{color:var(--sub)}
+.ld .ansd{color:var(--ink)}
+.fb .ld{font-size:20px;color:var(--ink)}
+.fb .ldwrap{padding:4px 0 2px;justify-content:flex-start}
+
+/* 선택형 */
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.opts.inline{flex-direction:row;flex-wrap:wrap}
+.opts.inline .opt{flex:1 1 120px;justify-content:center;font-size:21px}
+.opt{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;
+  padding:11px 14px;cursor:pointer;background:var(--card);font-size:18px;font-weight:600;
+  font-family:inherit;color:inherit;text-align:left;font-variant-numeric:tabular-nums}
+.opt:hover{border-color:var(--brand)}
+.opt.sel{border-color:var(--brand);background:var(--brand-soft)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt .mk{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:13px}
+.opt.sel .mk{border-color:var(--brand);background:var(--brand);color:#fff}
+
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.btn{border:none;border-radius:11px;padding:11px 20px;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:inherit;background:var(--brand);color:#fff}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:var(--card);color:var(--sub);border:1px solid var(--line)}
+.btn.ghost:hover{color:var(--ink)}
+
+.fb{margin-top:14px;border-radius:12px;padding:13px 15px;font-size:14.5px;display:none}
+.fb.show{display:block}
+.fb.good{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+.fb.err{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad)}
+.fb .ttl{font-weight:800;margin-bottom:4px}
+.fb .sol{color:var(--ink);font-size:14px;margin-top:6px;line-height:1.75}
+.fb .sol .em{font-weight:800;color:var(--bad)}
+.hint{font-size:13px;color:var(--sub);margin-top:10px}
+
+.toggle{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--sub);cursor:pointer;
+  border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;font-family:inherit}
+.toggle input{accent-color:var(--brand);margin:0}
+
+/* ---- 오른쪽에 항상 고정된 숫자판 ----
+   문제 화면에서는 본문 오른쪽에 숫자판 너비만큼 자리를 비워 두고,
+   숫자판은 화면(뷰포트) 오른쪽에 붙어 스크롤해도 움직이지 않는다. */
+body.quizmode .wrap{max-width:calc(1080px + var(--kpw) + 40px);padding-right:calc(var(--kpw) + 28px)}
+.kp{position:fixed;top:12px;right:12px;width:var(--kpw);max-height:calc(100vh - 24px);overflow-y:auto;
+  z-index:30;padding:12px;display:flex;flex-direction:column;gap:8px}
+.kp .kpt{font-size:12.5px;font-weight:700;color:var(--sub);text-align:center}
+.kp .kpg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kp .kpnav{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kp button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;
+  min-height:54px;font-size:24px;font-weight:700;font-family:inherit;cursor:pointer;padding:0;
+  font-variant-numeric:tabular-nums;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent}
+.kp button:active{background:var(--brand-soft);border-color:var(--brand)}
+.kp .kpnav button,.kp .kpclr{font-size:15px}
+.kp .kpok{background:var(--brand);border-color:var(--brand);color:#fff;font-size:17px}
+.kp .kpok:active{background:var(--brand);filter:brightness(1.1)}
+.kp.off .kpg button,.kp.off .kpnav button,.kp.off .kpclr{opacity:.35;pointer-events:none}
+
+footer.sig{margin-top:30px;text-align:center;font-size:12px;color:var(--sub);opacity:.8;line-height:1.7}
+@media (max-width:520px){
+  .qbody{font-size:20px}
+  .ld{font-size:22px}
+  .wrap{padding:12px 12px 48px}
+}
+
+/* ---- 태블릿 큰 화면 (13.3인치 가로 등) ---- */
+@media (min-width:1000px){
+  .wrap{max-width:1080px;padding:20px 24px 64px}
+  header.top h1{font-size:22px}
+  .sec-title{font-size:14px}
+  .qcard{padding:26px 24px 22px}
+  .qtext{font-size:18.5px}
+  .qbody{font-size:27px}
+  .qbody.small{font-size:22px}
+  .qbody.show{font-size:30px}
+  .ld{font-size:30px}
+  .opt{font-size:20px}
+  .opts.inline .opt{font-size:24px}
+  .menu{grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+  .mi .t{font-size:16px}
+  .mi .d{font-size:13px}
+  .stat{font-size:13.5px}
+}
+/* ---- 손가락으로 조작하는 기기 (태블릿·스마트폰) ---- */
+@media (pointer:coarse){
+  .slot{height:auto;min-height:52px;padding:4px 6px}
+  .ld .slot{min-height:44px;width:1.30em;min-width:1.30em;padding:0}
+  .ld .c{min-height:1.62em}
+  .ld .c.dg{min-width:1.46em;width:1.46em}
+  .btn{padding:15px 26px;font-size:16.5px}
+  .chip{padding:13px 16px;font-size:14px}
+  .iconbtn{padding:10px 14px;font-size:14px}
+  .toggle{padding:10px 15px;font-size:14px}
+  .opt{padding:16px 16px}
+  .opt .mk{width:26px;height:26px}
+  .mi{padding:16px 15px}
+  .kp button{min-height:62px;font-size:26px}
+  .kp .kpnav button,.kp .kpclr{font-size:16px}
+  .kp .kpok{font-size:18px}
+}
+/* 좁은 화면(세로로 든 작은 기기)에서도 숫자판은 오른쪽에 둔다 — 크기만 줄인다 */
+@media (max-width:699px){
+  :root{--kpw:178px}
+  .kp{padding:8px;gap:6px;top:8px;right:8px;max-height:calc(100vh - 16px)}
+  .kp .kpg,.kp .kpnav{gap:6px}
+  .kp button{min-height:46px;font-size:21px}
+  .kp .kpnav button,.kp .kpclr{font-size:13px}
+  .kp .kpok{font-size:15px}
+  body.quizmode .wrap{padding-right:calc(var(--kpw) + 18px)}
+}
+/* 화면 높이가 낮으면 버튼 높이를 줄여 숫자판이 한 화면에 들어오게 한다 */
+@media (max-height:640px){
+  .kp button{min-height:44px;font-size:20px}
+  .kp .kpnav button,.kp .kpclr{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>소수의 나눗셈 완전숙달</h1>
+    <span class="tag">6학년 2학기 3단원 · 수학익힘 35~50쪽</span>
+    <span class="spacer"></span>
+    <button class="iconbtn" id="btnTheme" type="button">화면 밝기</button>
+    <button class="iconbtn" id="btnReset" type="button">기록 지우기</button>
+  </header>
+  <main id="app"></main>
+  <footer class="sig">
+    Made by Sangtae Jeong<br>ver 261001_0919
+  </footer>
+</div>
+
+<script id="logic">
+/* =========================================================
+   순수 로직 — 화면(DOM)과 무관. 모든 계산은 정수로만 처리한다.
+   소수는 {i, dp} 로 나타낸다.  값 = i / 10^dp
+   근거: 수학익힘 6-2 「3. 소수의 나눗셈」 35~50쪽
+   ========================================================= */
+var L = (function(){
+"use strict";
+
+function R(n){ return Math.floor(Math.random()*n); }
+function pick(a){ return a[R(a.length)]; }
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t=a%b; a=b; b=t; } return a; }
+function pow10(n){ var r=1; for(var i=0;i<n;i++) r*=10; return r; }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=R(i+1); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+/* 소수 정규화: 끝자리 0 제거 */
+function normDec(i,dp){
+  while(dp>0 && i%10===0){ i=i/10; dp--; }
+  return {i:i, dp:dp};
+}
+function decStr(i,dp){
+  var neg = i<0; if(neg) i=-i;
+  var s = String(i);
+  if(dp>0){
+    while(s.length < dp+1) s = '0'+s;
+    s = s.slice(0, s.length-dp) + '.' + s.slice(s.length-dp);
+  }
+  return (neg?'-':'')+s;
+}
+function dstr(d){ return decStr(d.i, d.dp); }
+/* 값 × 10^k (소수점을 오른쪽으로 k칸) */
+function scale(d,k){
+  var i=d.i, dp=d.dp-k;
+  while(dp<0){ i*=10; dp++; }
+  return {i:i, dp:dp};
+}
+function mulD(a,b){ return normDec(a.i*b.i, a.dp+b.dp); }
+function cmpD(a,b){
+  var m = Math.max(a.dp,b.dp);
+  var x = a.i*pow10(m-a.dp), y = b.i*pow10(m-b.dp);
+  return x<y ? -1 : (x>y ? 1 : 0);
+}
+function subD(a,b){
+  var m = Math.max(a.dp,b.dp);
+  return normDec(a.i*pow10(m-a.dp) - b.i*pow10(m-b.dp), m);
+}
+/* 값이 lim 이하인가 (lim 은 보통 수) */
+function leVal(d, lim){ return d.i <= lim*pow10(d.dp) + 1e-9; }
+/* a ÷ b 를 분수 num/den 으로 */
+function ratio(a,b){
+  var m = Math.max(a.dp,b.dp);
+  return {num:a.i*pow10(m-a.dp), den:b.i*pow10(m-b.dp)};
+}
+/* a ÷ b 가 소수 maxDp 자리 안에서 나누어떨어지면 그 몫, 아니면 null */
+function exactDiv(a,b,maxDp){
+  var r = ratio(a,b);
+  for(var k=0;k<=maxDp;k++){
+    var n = r.num*pow10(k);
+    if(n % r.den === 0) return normDec(n/r.den, k);
+  }
+  return null;
+}
+/* 몫을 반올림하여 소수 k자리까지 */
+function roundQ(num, den, k){
+  var sc = num*pow10(k);
+  var r = Math.floor(sc/den);
+  if((sc - r*den)*2 >= den) r++;
+  return {i:r, dp:k};
+}
+/* 소수 m자리에서 버린 근삿값 문자열 */
+function approxStr(num, den, m){
+  var tr = Math.floor(num*pow10(m)/den);
+  var exact = (num*pow10(m) % den === 0);
+  return decStr(tr, m) + (exact ? '' : '…');
+}
+
+/* 조사 붙이기: 숫자는 읽는 소리(영·일·이·삼…)로, 한글은 받침으로 판단한다 */
+function hasB(str){
+  var ch = String(str).charAt(String(str).length-1);
+  if(/[0-9]/.test(ch)) return '013678'.indexOf(ch)>=0;
+  var c = ch.charCodeAt(0);
+  if(c>=0xAC00 && c<=0xD7A3) return (c-0xAC00)%28!==0;
+  return false;
+}
+function hasRieul(str){
+  var t = String(str), ch = t.charAt(t.length-1);
+  if(/[0-9]/.test(ch)) return ch!=='0' && '178'.indexOf(ch)>=0;
+  var c = ch.charCodeAt(0);
+  return c>=0xAC00 && c<=0xD7A3 && (c-0xAC00)%28===8;
+}
+function J(str, p){
+  var b = hasB(str);
+  var m = {'을':b?'을':'를', '이':b?'이':'가', '은':b?'은':'는', '과':b?'과':'와',
+           '로':(b && !hasRieul(str))?'으로':'로', '이라고':b?'이라고':'라고'};
+  return String(str) + m[p];
+}
+/* 단위 뒤 조사 (kg·g 은 받침, m·L·cm 은 받침 없음으로 읽는다) */
+function UJ(u, p){
+  var b = (u==='kg' || u==='g');
+  if(p==='이') return u + (b?'이':'가');
+  if(p==='을') return u + (b?'을':'를');
+  return u;
+}
+/* 끝자리가 0이 아닌 정수 v (lo~hi) */
+function nz(lo, hi){
+  for(var t=0;t<200;t++){ var v = lo + R(hi-lo+1); if(v%10!==0) return v; }
+  return lo%10===0 ? lo+1 : lo;
+}
+/* 나누는 수 만들기 */
+function divB(dp){
+  var r = R(10);
+  if(dp===1){
+    if(r<4) return {i:nz(2,9),   dp:1};   /* 0.2 ~ 0.9 */
+    if(r<8) return {i:nz(11,49), dp:1};   /* 1.1 ~ 4.9 */
+    return        {i:nz(51,99),  dp:1};   /* 5.1 ~ 9.9 */
+  }
+  if(r<5) return {i:nz(11,99),  dp:2};    /* 0.11 ~ 0.99 */
+  if(r<9) return {i:nz(101,495),dp:2};    /* 1.01 ~ 4.95 */
+  return        {i:nz(2,9),     dp:2};    /* 0.02 ~ 0.09 */
+}
+/* 몫(정수부 qi, 소수 qd자리) */
+function qGen(qd, lo, hi){              /* lo, hi : 10^qd 단위 정수 범위 */
+  return qd===0 ? lo + R(hi-lo+1) : nz(lo, hi);
+}
+/* B × Q = A 로 나눗셈 만들기
+   o = {dA, dB, qd:[...], qlo:[...], qhi:[...], Amax, Bfn} */
+function makeDiv(o, fb){
+  for(var t=0;t<4000;t++){
+    var B = o.Bfn ? o.Bfn() : divB(o.dB);
+    var k = R(o.qd.length);
+    var qd = o.qd[k];
+    var qi = qGen(qd, o.qlo[k], o.qhi[k]);
+    var A = normDec(B.i*qi, B.dp+qd);
+    if(o.dA!=null && A.dp!==o.dA) continue;
+    if(A.i===0) continue;
+    if(o.Amax!=null && !leVal(A, o.Amax)) continue;
+    return {A:A, B:B, Q:normDec(qi,qd)};
+  }
+  return {A:{i:fb[0],dp:fb[1]}, B:{i:fb[2],dp:fb[3]}, Q:normDec(fb[4],fb[5])};
+}
+
+/* 문자열 -> 소수. 형식이 틀리면 null */
+function parseDec(s){
+  s = String(s==null?'':s).trim().replace(/\s+/g,'');
+  s = s.replace(/[．。]/g,'.');
+  if(s==='' || s==='.' || s==='-' ) return null;
+  if(!/^-?\d*\.?\d*$/.test(s)) return null;
+  var neg=false;
+  if(s.charAt(0)==='-'){ neg=true; s=s.slice(1); }
+  var dot = s.indexOf('.');
+  var dp=0, digits=s;
+  if(dot>=0){
+    if(s.indexOf('.',dot+1)>=0) return null;
+    dp = s.length-dot-1;
+    digits = s.slice(0,dot)+s.slice(dot+1);
+  }
+  if(digits==='') return null;
+  var v = parseInt(digits,10);
+  if(!isFinite(v)) return null;
+  if(neg) v=-v;
+  return normDec(v,dp);
+}
+function sameNum(userStr, ansI, ansDp){
+  var u = parseDec(userStr);
+  if(!u) return false;
+  var a = normDec(ansI, ansDp);
+  return u.i===a.i && u.dp===a.dp;
+}
+
+/* =========================================================
+   세로셈 (교과서식)
+   maxQDp 를 주면 몫을 소수 maxQDp 자리까지만 구하고 멈춘다.
+   ========================================================= */
+function buildLong(divInt, divDp, divisor, maxQDp){
+  var s = String(divInt);
+  while(s.length < divDp+1) s = '0'+s;
+  var intLen = s.length - divDp;
+  var origLen = s.length;
+  var digits = [];
+  for(var a=0;a<s.length;a++) digits.push(Number(s.charAt(a)));
+
+  var steps=[], cur=0, idx=0;
+  while(idx < digits.length || cur!==0){
+    if(maxQDp!=null && idx >= intLen+maxQDp && idx >= digits.length) break;
+    if(idx >= digits.length){
+      if(digits.length - intLen >= 8) return null;
+      digits.push(0);
+    }
+    var curStart = cur*10 + digits[idx];
+    var q = Math.floor(curStart/divisor);
+    var prod = q*divisor;
+    var rem = curStart - prod;
+    steps.push({col:idx, curStart:curStart, q:q, prod:prod, rem:rem});
+    cur = rem; idx++;
+  }
+  /* 몫을 정해진 자리까지 구하는 경우, 나누어떨어져도 그 자리까지 0 을 채운다 */
+  if(maxQDp!=null){
+    while(steps.length < intLen+maxQDp){
+      if(idx >= digits.length) digits.push(0);
+      steps.push({col:idx, curStart:0, q:0, prod:0, rem:0}); idx++;
+    }
+  }
+  var qDp = steps.length - intLen;
+  var qi = 0;
+  for(var k=0;k<steps.length;k++) qi = qi*10 + steps[k].q;
+  return {
+    digits:digits, intLen:intLen, origLen:origLen, divisor:divisor,
+    steps:steps, qDigits:steps.map(function(x){return x.q;}),
+    qDp:qDp, rawQi:qi, quot:normDec(qi,qDp),
+    divInt:divInt, divDp:divDp, trunc:(maxQDp!=null),
+    lastRem: steps.length ? steps[steps.length-1].rem : 0
+  };
+}
+
+/* 화면에 쓸 행 — 곱이 0인 단계는 교과서처럼 건너뛴다 */
+function buildRows(Ld){
+  var rows=[], firstIdx=-1;
+  for(var k=0;k<Ld.steps.length;k++){
+    var st = Ld.steps[k];
+    if(firstIdx<0){
+      if(st.q>0) firstIdx=k; else continue;
+    }
+    if(st.prod===0) continue;
+    if(k!==firstIdx) rows.push({kind:'cur', col:st.col, text:String(st.curStart)});
+    rows.push({kind:'prod', col:st.col, text:String(st.prod), rule:true});
+  }
+  if(rows.length===0) return {rows:[], firstIdx:firstIdx};
+  var last = Ld.steps[Ld.steps.length-1];
+  if(last.rem!==0) rows.push({kind:'rem', col:last.col, text:String(last.rem)});
+  else             rows.push({kind:'rem', col:rows[rows.length-1].col, text:'0'});
+  return {rows:rows, firstIdx:firstIdx};
+}
+
+/* 몫 행에서 실제로 적는 자리 (정수부 앞쪽 0은 빈칸) */
+function quotientCells(Ld){
+  var cells=[], seen=false;
+  for(var i=0;i<Ld.qDigits.length;i++){
+    var isIntPart = (i < Ld.intLen);
+    var d = Ld.qDigits[i];
+    if(d!==0) seen=true;
+    var show;
+    if(!isIntPart) show = true;
+    else if(seen) show = true;
+    else if(i === Ld.intLen-1) show = true;
+    else show = false;
+    cells.push({col:i, digit:d, show:show});
+  }
+  return cells;
+}
+
+/* =========================================================
+   0단계 · 6-1 복습 (익힘 35쪽 「알고 있나요」)
+   ========================================================= */
+function randDec(intLo, intHi, dp){
+  for(var t=0;t<300;t++){
+    var ip = intLo + R(intHi-intLo+1);
+    var fp = R(pow10(dp));
+    var v = ip*pow10(dp) + fp;
+    if(v % 10 === 0) continue;
+    return {i:v, dp:dp};
+  }
+  return {i: intLo*pow10(dp)+1, dp:dp};
+}
+function classifyLong(Ld){
+  if(Ld.divDp===0) return Ld.qDp>0 ? 'N' : null;
+  var allExact = true;
+  for(var i=0;i<Ld.steps.length;i++){ if(Ld.steps[i].rem!==0){ allExact=false; break; } }
+  var qLess1 = Ld.quot.i < pow10(Ld.quot.dp);
+  var added = Ld.qDp > Ld.divDp;
+  var firstDecZero = false;
+  if(Ld.qDp>0){
+    var qs = String(Ld.rawQi);
+    while(qs.length < Ld.qDp+1) qs='0'+qs;
+    firstDecZero = (qs.charAt(qs.length-Ld.qDp)==='0');
+  }
+  if(firstDecZero) return 'E';
+  if(added) return 'D';
+  if(qLess1) return 'C';
+  if(!allExact) return 'B';
+  return 'A';
+}
+var FALLBACK = {
+  A:[[26,1,2],[639,2,3],[484,2,4],[936,2,3]],
+  B:[[489,2,3],[1743,2,7],[168,1,4],[1512,2,7]],
+  C:[[225,2,3],[64,1,8],[318,2,6],[112,2,4]],
+  D:[[75,1,2],[66,1,4],[135,1,6],[57,1,4]],
+  E:[[216,2,2],[609,2,3],[84,1,8],[1624,2,4]],
+  N:[[5,0,4],[9,0,2],[28,0,8],[15,0,6]]
+};
+function genLong61(kind){
+  for(var t=0;t<900;t++){
+    var divisor, divDp, divInt;
+    if(kind==='N'){
+      divisor = 2+R(7); divDp = 0; divInt = 3+R(97);
+    }else{
+      divisor = 2+R(8); divDp = 1+R(2);
+      var intLen = 1+R(2);
+      var lo = pow10(intLen-1), hi = pow10(intLen)-1;
+      divInt = (lo + R(hi-lo+1))*pow10(divDp) + R(pow10(divDp));
+    }
+    var n = normDec(divInt, divDp);
+    if(n.dp !== divDp) continue;
+    var Ld = buildLong(n.i, n.dp, divisor);
+    if(!Ld || Ld.qDp > 3 || Ld.quot.i === 0) continue;
+    if(classifyLong(Ld) !== kind) continue;
+    return Ld;
+  }
+  var f = pick(FALLBACK[kind]);
+  return buildLong(f[0], f[1], f[2]);
+}
+function genWarm(full){
+  var m = R(10);
+  if(m<3){                                  /* 9.2÷2 = 92/10 ÷ 2 = 46/10 = 4.6 */
+    var d = 2+R(8), dp = 1+R(2), den = pow10(dp), num=0, q=0, ok=false;
+    var qMax = Math.floor((den*10-1)/d);
+    for(var t=0;t<400;t++){
+      q = 2 + R(qMax-1); num = q*d;
+      if(num%10===0 || q%10===0) continue;
+      ok = true; break;
+    }
+    if(!ok){ dp=1; den=10; d=2; q=46; num=92; }
+    var val = normDec(num, dp), ans = normDec(q, dp);
+    return {view:'fill', head:'6-1 복습 · 분수로 고쳐서 계산', small:true,
+      text:'분수의 나눗셈으로 고쳐서 계산해 보세요.',
+      parts:[{t:dstr(val)+' ÷ '+d+' = '},{fracSlot:[0,String(den)]},{t:' ÷ '+d+' = '},
+             {fracSlot:[1,String(den)]},{t:' = '},{s:2}],
+      slots:[{ans:num,dp:0,w:'w2'},{ans:q,dp:0,w:'w2'},{ans:ans.i,dp:ans.dp}],
+      sol:dstr(val)+' ÷ '+d+' = '+num+'/'+den+' ÷ '+d+' = '+q+'/'+den+' = '+dstr(ans)};
+  }
+  if(m<5){                                  /* 92÷2=46 이용 */
+    var d2 = 2+R(8), q2=0, A2=0;
+    for(var t2=0;t2<400;t2++){
+      q2 = 11+R(300); A2 = q2*d2;
+      if(A2%10===0) continue;
+      if(String(A2).length<3 || String(A2).length>4) continue;
+      break;
+    }
+    var q1 = normDec(q2,1), q22 = normDec(q2,2);
+    return {view:'fill', head:'6-1 복습 · 자연수의 나눗셈 이용',
+      text:'자연수의 나눗셈 결과를 이용하여 계산해 보세요.',
+      parts:[{t:A2+' ÷ '+d2+' = '+q2},{br:1},
+             {t:decStr(A2,1)+' ÷ '+d2+' = '},{s:0},{br:1},
+             {t:decStr(A2,2)+' ÷ '+d2+' = '},{s:1}],
+      slots:[{ans:q1.i,dp:q1.dp},{ans:q22.i,dp:q22.dp}],
+      sol:'나누어지는 수가 1/10배, 1/100배가 되면 몫도 1/10배, 1/100배가 됩니다.'};
+  }
+  if(m<8){                                  /* 세로셈 */
+    var Ld = genLong61(pick(['A','B','C','D','E','N']));
+    return {view:'long', head:'6-1 복습 · 세로셈', text:'세로셈으로 계산해 보세요.',
+      Ld:Ld, full:!!full,
+      sol:decStr(Ld.divInt,Ld.divDp)+' ÷ '+Ld.divisor+' = '+dstr(Ld.quot)};
+  }
+  var B = 2+R(7), per = randDec(0, 3, 1+R(2));
+  if(per.i===0) per = {i:6, dp:1};
+  var A = normDec(per.i*B, per.dp);
+  return {view:'fill', head:'6-1 복습 · 문장제', small:true,
+    text:'우유 '+dstr(A)+' L를 '+B+'일 동안 똑같이 나누어 마시려고 합니다. 하루에 마시는 우유는 몇 L일까요?',
+    parts:[{t:dstr(A)+' ÷ '+B+' = '},{s:0},{t:' L'}],
+    slots:[{ans:per.i, dp:per.dp}],
+    sol:dstr(A)+' ÷ '+B+' = '+dstr(per)+' (L)'};
+}
+
+/* =========================================================
+   1단계 · (소수)÷(소수)의 원리 (익힘 36~39쪽)
+   ========================================================= */
+
+/* 그림·뺄셈으로 이해하기 (2.5÷0.5) */
+function genSub(){
+  var A, B, q, ok=false;
+  for(var t=0;t<600;t++){
+    var two = R(10)<3;
+    B = two ? {i:pick([15,25,35,45,75,12,16,24,32]), dp:2} : {i:2+R(8), dp:1};
+    q = 2+R(7);                                   /* 2 ~ 8 */
+    A = normDec(B.i*q, B.dp);
+    if(A.dp !== B.dp) continue;                   /* 자릿수가 같은 (소수)÷(소수) */
+    if(!leVal(A, 6)) continue;
+    ok = true; break;
+  }
+  if(!ok){ A={i:25,dp:1}; B={i:5,dp:1}; q=5; }
+  var a = dstr(A), b = dstr(B);
+  var chain = a; for(var k=0;k<q;k++) chain += ' − '+b;
+  if(R(2)===0){
+    return {view:'fill', head:'원리 · 그림으로 이해하기', small:true,
+      text:'그림을 보고 '+J(a+' ÷ '+b,'을')+' 구해 보세요. 색이 바뀌는 곳마다 '+b+'씩입니다.',
+      parts:[{nl:{A:A, B:B, q:q}},{br:1},
+             {t:J(a,'을')+' '+b+'씩 묶으면 '},{s:0},{t:'묶음이 되므로'},{br:1},
+             {t:a+' ÷ '+b+' = '},{s:1}],
+      slots:[{ans:q,dp:0,w:'w2'},{ans:q,dp:0,w:'w2'}],
+      sol:J(a,'을')+' '+b+'씩 묶으면 '+q+'묶음이므로 '+a+' ÷ '+b+' = '+q+'입니다.'};
+  }
+  return {view:'fill', head:'원리 · 뺄셈으로 이해하기', small:true,
+    text:a+'에서 '+J(b,'을')+' 몇 번 빼면 0이 되는지 생각하여 '+J(a+' ÷ '+b,'을')+' 구해 보세요.',
+    parts:[{t:a+'에서 '+b+'씩 '},{s:0},{t:'번 빼면 0이 되므로'},{br:1},
+           {t:a+' ÷ '+b+' = '},{s:1}],
+    slots:[{ans:q,dp:0,w:'w2'},{ans:q,dp:0,w:'w2'}],
+    sol:chain+' = 0 → '+q+'번 뺐으므로 '+a+' ÷ '+b+' = '+q+'입니다.'};
+}
+
+/* 단위를 바꾸어 계산하기 (37.1 cm ÷ 0.7 cm = 371 mm ÷ 7 mm) */
+function genUnit(){
+  var cm = R(10) < 6;
+  var r;
+  if(cm){
+    r = makeDiv({dA:1, dB:1, qd:[0], qlo:[3], qhi:[60], Amax:99.9,
+                 Bfn:function(){ return {i: R(3)===0 ? nz(11,29) : nz(2,9), dp:1}; }},
+                [371,1,7,1,53,0]);
+    var A=r.A, B=r.B;
+    var thing = pick(['종이띠','색 테이프','리본','털실']);
+    return {view:'fill', head:'원리 · 단위를 바꾸어 계산하기', small:true,
+      text:'길이가 '+dstr(A)+' cm인 '+J(thing,'을')+' '+dstr(B)+' cm씩 자르려고 합니다. 1 cm = 10 mm임을 이용하여 자른 조각은 몇 개인지 구해 보세요.',
+      parts:[{t:dstr(A)+' cm = '},{s:0},{t:' mm,   '+dstr(B)+' cm = '},{s:1},{t:' mm'},{br:1},
+             {t:dstr(A)+' ÷ '+dstr(B)+' = '},{s:2},{t:' ÷ '},{s:3},{t:' = '},{s:4},{t:' (개)'}],
+      slots:[{ans:A.i,dp:0},{ans:B.i,dp:0},{ans:A.i,dp:0},{ans:B.i,dp:0},{ans:r.Q.i,dp:0,w:'w2'}],
+      sol:dstr(A)+' cm = '+A.i+' mm, '+dstr(B)+' cm = '+B.i+' mm 이므로 '
+          +dstr(A)+' ÷ '+dstr(B)+' = '+A.i+' ÷ '+B.i+' = '+r.Q.i+' (개)'};
+  }
+  r = makeDiv({dA:2, dB:2, qd:[0], qlo:[2], qhi:[40], Amax:30,
+               Bfn:function(){ return {i: R(2)===0 ? nz(11,95) : nz(101,250), dp:2}; }},
+              [225,2,75,2,3,0]);
+  var A2=r.A, B2=r.B;
+  var th2 = pick(['끈','철사','리본','밧줄']);
+  return {view:'fill', head:'원리 · 단위를 바꾸어 계산하기', small:true,
+    text:'길이가 '+dstr(A2)+' m인 '+J(th2,'을')+' '+dstr(B2)+' m씩 자르려고 합니다. 1 m = 100 cm임을 이용하여 자른 도막은 몇 개인지 구해 보세요.',
+    parts:[{t:dstr(A2)+' m = '},{s:0},{t:' cm,   '+dstr(B2)+' m = '},{s:1},{t:' cm'},{br:1},
+           {t:dstr(A2)+' ÷ '+dstr(B2)+' = '},{s:2},{t:' ÷ '},{s:3},{t:' = '},{s:4},{t:' (개)'}],
+    slots:[{ans:A2.i,dp:0},{ans:B2.i,dp:0},{ans:A2.i,dp:0},{ans:B2.i,dp:0},{ans:r.Q.i,dp:0,w:'w2'}],
+    sol:dstr(A2)+' m = '+A2.i+' cm, '+dstr(B2)+' m = '+B2.i+' cm 이므로 '
+        +dstr(A2)+' ÷ '+dstr(B2)+' = '+A2.i+' ÷ '+B2.i+' = '+r.Q.i+' (개)'};
+}
+
+/* 자릿수가 같은 (소수)÷(소수) 기본 자료 */
+function sameDiv(d){
+  return makeDiv({dA:d, dB:d, qd:[0], qlo:[2], qhi:[d===1?60:90], Amax:99.99},
+                 d===1 ? [129,1,3,1,43,0] : [612,2,6,2,102,0]);
+}
+
+/* 분수의 나눗셈 이용 (6.12÷0.06 = 612/100 ÷ 6/100 = 612÷6) */
+function genFrac(){
+  var d = R(2)===0 ? 1 : 2;
+  var r = sameDiv(d), A=r.A, B=r.B, den = pow10(d);
+  return {view:'fill', head:'원리 · 분수의 나눗셈 이용', small:true,
+    text:'분수의 나눗셈을 이용하여 계산해 보세요.',
+    parts:[{t:dstr(A)+' ÷ '+dstr(B)+' = '},{fracSlot:[0,String(den)]},{t:' ÷ '},{fracSlot:[1,String(den)]},
+           {t:' = '},{s:2},{t:' ÷ '},{s:3},{t:' = '},{s:4}],
+    slots:[{ans:A.i,dp:0,w:'w2'},{ans:B.i,dp:0,w:'w2'},{ans:A.i,dp:0},{ans:B.i,dp:0},{ans:r.Q.i,dp:0,w:'w2'}],
+    sol:dstr(A)+' ÷ '+dstr(B)+' = '+A.i+'/'+den+' ÷ '+B.i+'/'+den+' = '+A.i+' ÷ '+B.i+' = '+r.Q.i
+        +'  (분모가 같으면 분자끼리 나눕니다.)'};
+}
+
+/* 자연수의 나눗셈 이용 (12.9÷0.3 → 129÷3, 10배·10배) */
+function genNat(){
+  var d = R(2)===0 ? 1 : 2;
+  var r = sameDiv(d), A=r.A, B=r.B, m = pow10(d);
+  var mode = R(2);
+  if(mode===0){
+    return {view:'fill', head:'원리 · 자연수의 나눗셈 이용', small:true,
+      text:'두 수에 똑같이 몇 배를 하면 되는지 생각하여 계산해 보세요.',
+      parts:[{t:dstr(A)+' ÷ '+dstr(B)},{br:1},
+             {t:'두 수에 똑같이 '},{s:0},{t:' 배를 하면'},{br:1},
+             {t:A.i+' ÷ '+B.i+' = '},{s:1},{br:1},
+             {t:dstr(A)+' ÷ '+dstr(B)+' = '},{s:2}],
+      slots:[{ans:m,dp:0},{ans:r.Q.i,dp:0,w:'w2'},{ans:r.Q.i,dp:0,w:'w2'}],
+      sol:'나누는 수 '+J(dstr(B),'이')+' 자연수가 되려면 '+m+'배를 해야 합니다. 두 수에 똑같이 '+m+'배를 하면 '
+          +A.i+' ÷ '+B.i+' = '+r.Q.i+'이고, 두 수에 똑같이 곱해도 몫은 같습니다.'};
+  }
+  return {view:'fill', head:'원리 · 자연수의 나눗셈 이용', small:true,
+    text:'자연수의 나눗셈을 이용하여 계산해 보세요.',
+    parts:[{t:dstr(A)+' ÷ '+dstr(B)},{br:1},
+           {t:'두 수에 똑같이 '+m+'배를 하면'},{br:1},
+           {s:0},{t:' ÷ '},{s:1},{t:' = '},{s:2}],
+    slots:[{ans:A.i,dp:0},{ans:B.i,dp:0},{ans:r.Q.i,dp:0,w:'w2'}],
+    sol:dstr(A)+' × '+m+' = '+A.i+',  '+dstr(B)+' × '+m+' = '+B.i+'  →  '+A.i+' ÷ '+B.i+' = '+r.Q.i};
+}
+
+/* =========================================================
+   2단계 · (소수)÷(소수) 세로셈 (익힘 40~43쪽)
+   ========================================================= */
+function longFrom(A, B, k, head, text, full, extraSol){
+  var a = scale(A,k), b = scale(B,k);
+  var Ld = buildLong(a.i, a.dp, b.i);
+  return {view:'long', head:head, text:text, Ld:Ld, full:!!full,
+    pre:[{t:dstr(A)+' ÷ '+dstr(B)+'   →   두 수에 똑같이 '},{s:0},{t:' 배'}],
+    slots:[{ans:pow10(k), dp:0}],
+    sol:dstr(A)+' ÷ '+dstr(B)+'의 두 수에 똑같이 '+pow10(k)+'배를 하면 '+dstr(a)+' ÷ '+b.i
+        +'이므로 몫은 '+dstr(Ld.quot)+'입니다.'+(extraSol||'')};
+}
+function okLong(A,B,k){
+  var a = scale(A,k), b = scale(B,k);
+  if(b.dp!==0) return false;
+  var Ld = buildLong(a.i, a.dp, b.i);
+  if(!Ld || Ld.qDigits.length>6 || Ld.qDp>3) return false;
+  return true;
+}
+
+/* 자릿수가 같은 경우 (2.8÷0.7, 4.18÷0.38) */
+function genLSame(full){
+  var d = R(10)<5 ? 1 : 2;
+  var r = sameDiv(d);
+  return longFrom(r.A, r.B, d, '세로셈 · 자릿수가 같은 경우',
+    '나누는 수가 자연수가 되도록 두 수의 소수점을 같은 자리만큼 옮겨 세로셈으로 계산해 보세요.', full);
+}
+
+/* 자릿수가 다른 경우 (2.34÷1.8, 7.36÷3.2, 4.5÷0.15) */
+function genLDiff(full){
+  var c = R(10), r, k, method;
+  if(c < 7){
+    r = makeDiv({dA:2, dB:1, qd:[1], qlo:[11], qhi:[199], Amax:99.99}, [234,2,18,1,13,1]);
+    if(R(2)===0){ k=2; method='(자연수)÷(자연수) 이용하기'; }
+    else        { k=1; method='(소수)÷(자연수) 이용하기'; }
+  }else{
+    r = makeDiv({dA:1, dB:2, qd:[0,1], qlo:[2,11], qhi:[60,199], Amax:99.9}, [45,1,15,2,30,0]);
+    k = 2; method='나누는 수를 자연수로';
+  }
+  if(!okLong(r.A, r.B, k)){ r={A:{i:234,dp:2},B:{i:18,dp:1},Q:{i:13,dp:1}}; k=1; method='(소수)÷(자연수) 이용하기'; }
+  if(R(10) < 3){
+    var a = scale(r.A,k), b = scale(r.B,k);
+    return {view:'fill', head:'세로셈 · 자릿수가 다른 경우',
+      text:'두 수에 똑같이 '+pow10(k)+'배를 하여 계산해 보세요. ('+method+')',
+      parts:[{t:dstr(r.A)+' ÷ '+dstr(r.B)+' = '},{s:0},{t:' ÷ '},{s:1},{t:' = '},{s:2}],
+      slots:[{ans:a.i,dp:a.dp},{ans:b.i,dp:0},{ans:r.Q.i,dp:r.Q.dp}],
+      sol:dstr(r.A)+' ÷ '+dstr(r.B)+' = '+dstr(a)+' ÷ '+b.i+' = '+dstr(r.Q)};
+  }
+  return longFrom(r.A, r.B, k, '세로셈 · 자릿수가 다른 경우 · '+method,
+    J(dstr(r.A)+' ÷ '+dstr(r.B),'을')+' '
+      +(method.indexOf('이용')>=0 ? method.replace(' 이용하기','를 이용하여') : '나누는 수가 자연수가 되도록 소수점을 옮겨')
+      +' 세로셈으로 계산해 보세요.',
+    full, k===1 && r.A.dp===2 ? ' 몫의 소수점은 옮긴 소수점의 위치에 맞추어 찍습니다.' : '');
+}
+
+/* 몫이 1보다 작은 경우 (0.57÷9.5, 0.48÷0.6) */
+function genLSmall(full){
+  var r = makeDiv({dA:2, dB:1, qd:[1,2], qlo:[1,1], qhi:[9,99], Amax:9.99},
+                  [57,2,95,1,6,2]);
+  if(cmpD(r.Q,{i:1,dp:0})>=0 || !okLong(r.A,r.B,1)) r={A:{i:57,dp:2},B:{i:95,dp:1},Q:{i:6,dp:2}};
+  var k = 1;
+  return longFrom(r.A, r.B, k, '세로셈 · 몫이 1보다 작은 경우',
+    '나누어지는 수가 나누는 수보다 작으면 몫은 1보다 작습니다. 몫의 일의 자리에 0을 쓰고 세로셈으로 계산해 보세요.',
+    full, '');
+}
+
+/* =========================================================
+   3단계 · (자연수)÷(소수) (익힘 44~45쪽)
+   ========================================================= */
+var FRIENDLY2 = [4,5,6,8,9,12,15,16,24,25,32,35,36,45,48,64,75,125,175,225,275,325,425];
+function natDiv(){
+  for(var t=0;t<5000;t++){
+    var db = R(10)<6 ? 1 : 2;
+    var B = db===1 ? divB(1) : {i:pick(FRIENDLY2), dp:2};
+    var A = 2 + R(98);
+    var num = A*pow10(db);
+    if(num % B.i === 0){
+      var q = num/B.i;
+      if(q<2 || q>400) continue;
+      return {A:{i:A,dp:0}, B:B, Q:{i:q,dp:0}};
+    }
+    if(R(10)<3 && (num*10) % B.i === 0){
+      var q1 = num*10/B.i;
+      if(q1%10===0 || q1>999) continue;
+      return {A:{i:A,dp:0}, B:B, Q:{i:q1,dp:1}};
+    }
+  }
+  return {A:{i:13,dp:0}, B:{i:26,dp:1}, Q:{i:5,dp:0}};
+}
+function genLNat(full){
+  var r = natDiv(), A=r.A, B=r.B, k=B.dp, m=pow10(k);
+  var a = scale(A,k);
+  var mode = R(10);
+  if(mode<3){
+    return {view:'fill', head:'(자연수)÷(소수) · 분수의 나눗셈 이용', small:true,
+      text:'분수의 나눗셈을 이용하여 계산해 보세요.',
+      parts:[{t:dstr(A)+' ÷ '+dstr(B)+' = '},{fracSlot:[0,String(m)]},{t:' ÷ '},{fracSlot:[1,String(m)]},
+             {t:' = '},{s:2},{t:' ÷ '},{s:3},{t:' = '},{s:4}],
+      slots:[{ans:a.i,dp:0,w:'w2'},{ans:B.i,dp:0,w:'w2'},{ans:a.i,dp:0},{ans:B.i,dp:0},{ans:r.Q.i,dp:r.Q.dp}],
+      sol:dstr(A)+' = '+a.i+'/'+m+'이므로 '+dstr(A)+' ÷ '+dstr(B)+' = '+a.i+'/'+m+' ÷ '+B.i+'/'+m
+          +' = '+a.i+' ÷ '+B.i+' = '+dstr(r.Q)};
+  }
+  if(mode<5){
+    return {view:'fill', head:'(자연수)÷(소수) · 자연수의 나눗셈 이용', small:true,
+      text:'나누는 수가 자연수가 되도록 두 수에 똑같이 곱하여 계산해 보세요.',
+      parts:[{t:dstr(A)+' ÷ '+dstr(B)},{br:1},
+             {t:'두 수에 똑같이 '},{s:0},{t:' 배를 하면'},{br:1},
+             {s:1},{t:' ÷ '},{s:2},{t:' = '},{s:3}],
+      slots:[{ans:m,dp:0},{ans:a.i,dp:0},{ans:B.i,dp:0},{ans:r.Q.i,dp:r.Q.dp}],
+      sol:'나누는 수 '+J(dstr(B),'이')+' 자연수가 되려면 '+m+'배를 해야 합니다. 자연수 '+A.i+'도 '+m+'배를 하면 '
+          +a.i+'이므로 '+a.i+' ÷ '+B.i+' = '+dstr(r.Q)+'입니다.'};
+  }
+  return longFrom(A, B, k, '(자연수)÷(소수) · 세로셈',
+    '나누는 수가 자연수가 되도록 소수점을 옮겨 세로셈으로 계산해 보세요. 자연수는 옮긴 만큼 0을 붙입니다.',
+    full, ' ('+A.i+'의 소수점을 '+k+'칸 옮기면 '+a.i+'입니다.)');
+}
+
+/* =========================================================
+   4단계 · 몫을 반올림하여 나타내기 (익힘 46~47쪽)
+   ========================================================= */
+var PLACE = ['일의 자리','소수 첫째 자리','소수 둘째 자리','소수 셋째 자리'];
+function roundSol(num, den, k){
+  var r = roundQ(num,den,k);
+  var decide = Math.floor(num*pow10(k+1)/den) % 10;
+  return PLACE[k]+'까지 나타내려면 '+PLACE[k+1]+' 숫자 '+J(String(decide),'을')+' 보고 '
+         +(decide>=5?'올림':'버림')+'하여 '+dstr(r);
+}
+/* 소수 셋째 자리까지 나누어떨어지지 않는 나눗셈 */
+function roundDiv(allowDecB){
+  for(var t=0;t<3000;t++){
+    var B = (allowDecB && R(10)<4) ? divB(1) : {i:pick([3,6,7,9,11,12,13,14]), dp:0};
+    var da = R(3);                                     /* 0, 1, 2 */
+    var A = da===0 ? {i:2+R(60),dp:0} : {i:nz(pow10(da)+1, pow10(da+2)-1), dp:da};
+    var rr = ratio(A,B);
+    if(rr.num*1000 % rr.den === 0) continue;           /* 셋째 자리 안에서 끝나면 제외 */
+    if(rr.num*10 < rr.den) continue;                   /* 몫 0.1 미만 제외 */
+    if(rr.num >= rr.den*100) continue;                 /* 몫 100 이상 제외 */
+    return {A:A, B:B, num:rr.num, den:rr.den};
+  }
+  return {A:{i:85,dp:1}, B:{i:6,dp:0}, num:85, den:60};
+}
+/* 소수 셋째 자리까지 세로셈 + 세 자리로 반올림 */
+function genRoundL(full){
+  var r = roundDiv(false);
+  var k = r.B.dp, a = scale(r.A,k), b = scale(r.B,k);
+  var Ld = buildLong(a.i, a.dp, b.i, 3);
+  var r0 = roundQ(r.num,r.den,0), r1 = roundQ(r.num,r.den,1), r2 = roundQ(r.num,r.den,2);
+  return {view:'long', head:'몫을 반올림 · 소수 셋째 자리까지 계산',
+    text:dstr(r.A)+' ÷ '+dstr(r.B)+'의 몫을 소수 셋째 자리까지 세로셈으로 구한 뒤, 반올림하여 주어진 자리까지 나타내어 보세요.',
+    Ld:Ld, full:!!full,
+    post:[{t:'일의 자리까지: '},{s:0},{br:1},{t:'소수 첫째 자리까지: '},{s:1},{br:1},{t:'소수 둘째 자리까지: '},{s:2}],
+    slots:[{ans:r0.i,dp:r0.dp},{ans:r1.i,dp:r1.dp},{ans:r2.i,dp:r2.dp}],
+    sol:dstr(r.A)+' ÷ '+dstr(r.B)+' = '+approxStr(r.num,r.den,3)+'  →  '
+        +roundSol(r.num,r.den,0)+',  '+roundSol(r.num,r.den,1)+',  '+roundSol(r.num,r.den,2)
+        +'.  (끝자리가 0이 되면 0을 써도, 빼도 정답입니다.)'};
+}
+/* 주어진 자리까지 반올림 */
+function genRound(){
+  var r = roundDiv(true);
+  var expr = dstr(r.A)+' ÷ '+dstr(r.B);
+  if(R(2)===0){
+    var r0 = roundQ(r.num,r.den,0), r1 = roundQ(r.num,r.den,1), r2 = roundQ(r.num,r.den,2);
+    return {view:'fill', head:'몫을 반올림 · 세 자리로 나타내기', small:true,
+      text:expr+'의 몫을 반올림하여 주어진 자리까지 나타내어 보세요.',
+      parts:[{t:'일의 자리까지: '},{s:0},{br:1},{t:'소수 첫째 자리까지: '},{s:1},{br:1},{t:'소수 둘째 자리까지: '},{s:2}],
+      slots:[{ans:r0.i,dp:0},{ans:r1.i,dp:1},{ans:r2.i,dp:2}],
+      sol:expr+' = '+approxStr(r.num,r.den,3)+'  →  '+roundSol(r.num,r.den,0)+',  '
+          +roundSol(r.num,r.den,1)+',  '+roundSol(r.num,r.den,2)};
+  }
+  var k = R(3), rk = roundQ(r.num,r.den,k);
+  return {view:'fill', head:'몫을 반올림 · 한 자리 정해 나타내기',
+    text:expr+'의 몫을 반올림하여 '+PLACE[k]+'까지 나타내어 보세요.',
+    parts:[{t:expr+' ≈ '},{s:0}],
+    slots:[{ans:rk.i,dp:rk.dp}],
+    sol:expr+' = '+approxStr(r.num,r.den,k+2)+'  →  '+roundSol(r.num,r.den,k)};
+}
+/* 몇 배인지 반올림 (58÷2.7) */
+var ROUND_CTX = [
+  {a:'테니스공', b:'탁구공', u:'g', what:'무게'},
+  {a:'수박', b:'참외', u:'kg', what:'무게'},
+  {a:'학교 건물', b:'나무', u:'m', what:'높이'},
+  {a:'강당', b:'교실', u:'m²', what:'넓이'},
+  {a:'큰 물통', b:'작은 물병', u:'L', what:'들이'}
+];
+function genRoundW(){
+  for(var t=0;t<3000;t++){
+    var B = R(2)===0 ? divB(1) : {i:nz(11,99),dp:1};
+    var da = R(2);
+    var A = da===0 ? {i:3+R(97),dp:0} : {i:nz(31,999),dp:1};
+    if(cmpD(A,B) <= 0) continue;
+    var rr = ratio(A,B);
+    if(rr.num*1000 % rr.den === 0) continue;
+    if(rr.num >= rr.den*60) continue;
+    var k = 1+R(2);
+    var c = pick(ROUND_CTX), rk = roundQ(rr.num,rr.den,k);
+    return {view:'fill', head:'몫을 반올림 · 몇 배인지 구하기', small:true,
+      text:c.a+'의 '+c.what+'는 '+dstr(A)+' '+c.u+'이고, '+c.b+'의 '+c.what+'는 '+dstr(B)+' '+c.u+'입니다. '
+           +c.a+'의 '+c.what+'는 '+c.b+'의 '+c.what+'의 몇 배인지 반올림하여 '+PLACE[k]+'까지 나타내어 보세요.',
+      parts:[{t:dstr(A)+' ÷ '+dstr(B)+' ≈ '},{s:0},{t:' (배)'}],
+      slots:[{ans:rk.i,dp:rk.dp}],
+      sol:dstr(A)+' ÷ '+dstr(B)+' = '+approxStr(rr.num,rr.den,k+2)+'  →  '+roundSol(rr.num,rr.den,k)+' (배)'};
+  }
+  return genRound();
+}
+
+/* =========================================================
+   5단계 · 나누어 주고 남는 양 (익힘 48~49쪽)
+   ========================================================= */
+var REM_CTX = [
+  {mk:function(T,D){return '방울토마토 '+T+' kg을 한 사람에게 '+D+' kg씩 나누어 주려고 합니다. 나누어 줄 수 있는 사람 수와 남는 양을 구해 보세요.';},
+   a:'나누어 줄 수 있는 사람', au:'명', bu:'kg'},
+  {mk:function(T,D){return '물 '+T+' L를 한 병에 '+D+' L씩 나누어 담으려고 합니다. 담을 수 있는 병의 수와 남는 물의 양을 구해 보세요.';},
+   a:'담을 수 있는 병', au:'병', bu:'L'},
+  {mk:function(T,D){return '설탕 '+T+' kg을 한 봉지에 '+D+' kg씩 나누어 담으려고 합니다. 담을 수 있는 봉지 수와 남는 설탕의 양을 구해 보세요.';},
+   a:'담을 수 있는 봉지', au:'봉지', bu:'kg'},
+  {mk:function(T,D){return '페인트 '+T+' L를 한 통에 '+D+' L씩 나누어 담으려고 합니다. 담을 수 있는 통의 수와 남는 페인트의 양을 구해 보세요.';},
+   a:'담을 수 있는 통', au:'통', bu:'L'},
+  {mk:function(T,D){return '끈 '+T+' m를 '+D+' m씩 자르려고 합니다. 자를 수 있는 도막 수와 남는 끈의 길이를 구해 보세요.';},
+   a:'자를 수 있는 도막', au:'도막', bu:'m'}
+];
+/* T ÷ D 의 몫을 자연수까지 구하고 남는 양 */
+function remData(decD){
+  for(var t=0;t<3000;t++){
+    var dt = 1 + (R(10)<8 ? 0 : 1);
+    var D = decD ? {i:nz(2,49), dp:1} : {i:2+R(8), dp:0};
+    var T = {i:nz(pow10(dt), pow10(dt+2)-1), dp:dt};
+    var rr = ratio(T,D);
+    var q = Math.floor(rr.num/rr.den);
+    if(q<2 || q>30) continue;
+    var rem = subD(T, mulD(D,{i:q,dp:0}));
+    if(rem.i===0) continue;
+    if(rem.dp===0) continue;                      /* 남는 양이 소수가 되도록 */
+    return {T:T, D:D, q:q, rem:rem};
+  }
+  return {T:{i:172,dp:1}, D:{i:2,dp:0}, q:8, rem:{i:12,dp:1}};
+}
+function genRemain(){
+  var r = remData(R(2)===0), c = pick(REM_CTX);
+  var T=dstr(r.T), D=dstr(r.D), RM=dstr(r.rem);
+  return {view:'fill', head:'남는 양 · 몫과 남는 양 구하기', small:true,
+    text:c.mk(T,D)+' (몫은 자연수까지 구합니다.)',
+    parts:[{t:c.a+': '},{s:0},{t:' '+c.au},{br:1},
+           {t:'남는 양: '},{s:1},{t:' '+c.bu},{br:1},
+           {t:'확인: '+D+' × '},{s:2},{t:' + '},{s:3},{t:' = '+T}],
+    slots:[{ans:r.q,dp:0,w:'w2'},{ans:r.rem.i,dp:r.rem.dp},{ans:r.q,dp:0,w:'w2'},{ans:r.rem.i,dp:r.rem.dp}],
+    sol:T+' ÷ '+D+'의 몫을 자연수까지 구하면 '+r.q+'이고, 남는 양은 '+T+' − '+D+' × '+r.q+' = '+RM
+        +'입니다. 남는 양의 소수점은 나누어지는 수의 소수점 위치에 맞추어 찍습니다. 확인: '
+        +D+' × '+r.q+' + '+RM+' = '+T};
+}
+var SUB_CTX = [
+  {mk:function(T,D){return '묵 한 판을 만드는 데 도토리 '+D+' kg이 필요합니다. 도토리 '+T+' kg으로 만들 수 있는 묵은 몇 판이고, 남는 도토리는 몇 kg일까요?';},
+   a:'만들 수 있는 묵', au:'판', bu:'kg'},
+  {mk:function(T,D){return '빵 한 개를 만드는 데 밀가루 '+D+' kg이 필요합니다. 밀가루 '+T+' kg으로 만들 수 있는 빵은 몇 개이고, 남는 밀가루는 몇 kg일까요?';},
+   a:'만들 수 있는 빵', au:'개', bu:'kg'},
+  {mk:function(T,D){return '목도리 한 개를 뜨는 데 털실 '+D+' m가 필요합니다. 털실 '+T+' m로 뜰 수 있는 목도리는 몇 개이고, 남는 털실은 몇 m일까요?';},
+   a:'뜰 수 있는 목도리', au:'개', bu:'m'}
+];
+function genRemSub(){
+  if(R(10) < 6){                                   /* 뺄셈으로 구하기 (23.5 − 5 − 5 − 5 − 5) */
+    var D = 2+R(8), q = 2+R(4), ri = nz(1, D*10-1);
+    var T = normDec(D*q*10 + ri, 1), rem = normDec(ri,1), c = pick(SUB_CTX);
+    var chain = dstr(T); for(var k=0;k<q;k++) chain += ' − '+D;
+    return {view:'fill', head:'남는 양 · 뺄셈으로 구하기', small:true,
+      text:c.mk(dstr(T), String(D))+' 뺄셈으로 구해 보세요.',
+      parts:[{t:chain+' = '},{s:0},{br:1},
+             {t:c.a+': '},{s:1},{t:' '+c.au},{br:1},
+             {t:'남는 양: '},{s:2},{t:' '+c.bu}],
+      slots:[{ans:rem.i,dp:rem.dp},{ans:q,dp:0,w:'w2'},{ans:rem.i,dp:rem.dp}],
+      sol:dstr(T)+'에서 '+J(String(D),'을')+' '+q+'번 빼면 '+J(dstr(rem),'이')+' 남고, '+J(dstr(rem),'은')+' '+D+'보다 작아 더 뺄 수 없습니다.'
+          +' 따라서 '+q+c.au+'이고 '+dstr(rem)+' '+UJ(c.bu,'이')+' 남습니다.'};
+  }
+  /* 남는 양에 더해서 하나 더 만들기 (설탕 8.1 kg, 1.5 kg씩) */
+  var r = remData(true);
+  var need = subD(r.D, r.rem);
+  return {view:'fill', head:'남는 양 · 하나 더 만들려면', small:true,
+    text:'설탕 '+dstr(r.T)+' kg을 한 봉지에 '+dstr(r.D)+' kg씩 나누어 담아 봉지를 만들려고 합니다. 만들 수 있는 봉지 수와 남는 설탕의 양을 구하고, 남는 설탕에 설탕을 더해서 한 봉지를 더 만들려면 설탕이 몇 kg 더 필요한지 구해 보세요.',
+    parts:[{t:'만들 수 있는 봉지: '},{s:0},{t:' 봉지'},{br:1},
+           {t:'남는 설탕: '},{s:1},{t:' kg'},{br:1},
+           {t:'더 필요한 설탕: '},{s:2},{t:' kg'}],
+    slots:[{ans:r.q,dp:0,w:'w2'},{ans:r.rem.i,dp:r.rem.dp},{ans:need.i,dp:need.dp}],
+    sol:dstr(r.T)+' ÷ '+dstr(r.D)+' → '+r.q+'봉지, 남는 설탕 '+dstr(r.rem)+' kg.  한 봉지를 더 만들려면 '
+        +dstr(r.D)+' − '+dstr(r.rem)+' = '+dstr(need)+' (kg)이 더 필요합니다.'};
+}
+
+/* =========================================================
+   6단계 · 판단하고 적용하기 (익힘 「스스로 확인」)
+   ========================================================= */
+/* 여러 꼴의 (소수)÷(소수), (자연수)÷(소수) 하나 */
+function anyDiv(qkind){
+  /* qkind: 'big'(10보다 큼) / 'small'(10보다 작음) / 그 밖 */
+  var qlo0 = qkind==='big' ? 11 : 2, qhi0 = qkind==='small' ? 9 : 40;
+  var form = R(3);
+  if(form===2 && qkind!=='small'){
+    var r = natDiv();
+    if(qkind!=='big' || cmpD(r.Q,{i:10,dp:0})>0) return r;
+  }
+  if(form===1){
+    return makeDiv({dA:2, dB:1, qd:[0,1], qlo:[qlo0, qlo0*10+1], qhi:[qhi0, qhi0*10-1], Amax:99.99},
+                   [234,2,18,1,13,1]);
+  }
+  var d = 1+R(2);
+  return makeDiv({dA:d, dB:d, qd:[0], qlo:[qlo0], qhi:[qhi0], Amax:99.99}, [216,2,24,2,9,0]);
+}
+function exprOf(r){ return dstr(r.A)+' ÷ '+dstr(r.B); }
+function genCmp(){
+  var m = R(10);
+  if(m < 5){                                       /* >, =, < */
+    var x = anyDiv(), y;
+    if(R(10) < 3){
+      for(var t=0;t<200;t++){
+        y = makeDiv({dB:1+R(2), qd:[x.Q.dp], qlo:[x.Q.i], qhi:[x.Q.i], Amax:99.99}, [0,0,0,0,0,0]);
+        if(y.A.i===0) continue;
+        if(y.A.dp===0 && y.B.dp===0) continue;
+        if(exprOf(y)!==exprOf(x)) break;
+      }
+      if(!y || y.A.i===0 || exprOf(y)===exprOf(x)) y = anyDiv();
+    }else{
+      for(var t2=0;t2<50;t2++){ y = anyDiv(); if(exprOf(y)!==exprOf(x)) break; }
+    }
+    var c = cmpD(x.Q, y.Q), sign = c>0 ? '>' : (c<0 ? '<' : '=');
+    var opts = ['>','=','<'];
+    return {view:'choice', head:'판단 · 몫의 크기 비교', multi:false, inline:true,
+      text:'계산 결과를 비교하여 ○ 안에 >, =, < 중 알맞은 것을 고르세요.',
+      parts:[{t:exprOf(x)+'   ○   '+exprOf(y)}],
+      options:opts, correct:[opts.indexOf(sign)],
+      sol:exprOf(x)+' = '+dstr(x.Q)+',  '+exprOf(y)+' = '+dstr(y.Q)+'  →  '+dstr(x.Q)+' '+sign+' '+dstr(y.Q)};
+  }
+  if(m < 8){                                       /* 몫이 가장 작은(큰) 나눗셈 */
+    var big = R(2)===0, list=[], seen={};
+    for(var t3=0;t3<200 && list.length<4;t3++){
+      var z = anyDiv(), key = dstr(z.Q);
+      if(seen[key]) continue;
+      seen[key]=1; list.push(z);
+    }
+    var best = 0;
+    for(var i=1;i<list.length;i++){
+      var cc = cmpD(list[i].Q, list[best].Q);
+      if(big ? cc>0 : cc<0) best = i;
+    }
+    return {view:'choice', head:'판단 · 몫이 가장 '+(big?'큰':'작은')+' 나눗셈', multi:false,
+      text:'몫이 가장 '+(big?'큰':'작은')+' 나눗셈을 고르세요.',
+      options:list.map(exprOf), correct:[best],
+      sol:list.map(function(z){ return exprOf(z)+' = '+dstr(z.Q); }).join(' /  ')};
+  }
+  /* 몫이 10보다 큰 나눗셈 모두 */
+  var n = 3+R(2), arr=[], corr=[], used={};
+  for(var j=0;j<n;j++){
+    var want = (j===0) ? 'big' : (j===1 ? 'small' : (R(2)===0?'big':'small'));
+    var w;
+    for(var t4=0;t4<100;t4++){ w = anyDiv(want); if(!used[exprOf(w)]) break; }
+    used[exprOf(w)] = 1; arr.push(w);
+  }
+  shuffle(arr);
+  arr.forEach(function(z, ix){ if(cmpD(z.Q,{i:10,dp:0})>0) corr.push(ix); });
+  return {view:'choice', head:'판단 · 몫이 10보다 큰 나눗셈', multi:true,
+    text:'몫이 10보다 큰 나눗셈을 모두 고르세요. 곱셈과 나눗셈의 관계를 이용하여 어림해 보세요.',
+    options:arr.map(exprOf), correct:corr,
+    sol:'(나누는 수) × 10보다 나누어지는 수가 크면 몫은 10보다 큽니다. → '
+        +arr.map(function(z){ return exprOf(z)+' = '+dstr(z.Q); }).join(' /  ')};
+}
+
+/* 잘못된 계산 찾기 */
+var NAMES = ['민준','수아','하준','서연','지호','예린','도윤','채원'];
+function genErr(){
+  var m = R(10);
+  if(m < 4){                                       /* 몫의 소수점 위치 오류 */
+    var r, k, wrong;
+    for(var t=0;t<300;t++){
+      if(R(2)===0){ r = makeDiv({dA:1, dB:1, qd:[0], qlo:[11], qhi:[60], Amax:99.9}, [76,1,4,1,19,0]); k=1; }
+      else        { r = makeDiv({dA:2, dB:1, qd:[1], qlo:[11], qhi:[99], Amax:99.99}, [2016,2,32,1,63,1]); k=1; }
+      wrong = normDec(r.Q.i, r.Q.dp + k);              /* 소수점을 원래 자리에 찍은 몫 */
+      if(cmpD(wrong, r.Q)!==0) break;
+    }
+    var who = pick(NAMES);
+    return {view:'fill', head:'판단 · 잘못된 계산 바로잡기', small:true,
+      text:J(who,'은')+' '+J(exprOf(r),'을')+' 계산하여 몫을 '+J(dstr(wrong),'이라고')+' 썼습니다. 잘못된 곳을 찾아 바르게 계산해 보세요.',
+      parts:[{t:'바른 계산: '+exprOf(r)+' = '},{s:0}],
+      slots:[{ans:r.Q.i,dp:r.Q.dp}],
+      sol:'두 수의 소수점을 오른쪽으로 '+k+'칸씩 옮겨 계산했으므로 몫의 소수점은 옮긴 소수점의 위치에 맞추어 찍어야 합니다. '
+          +'원래 소수점 자리에 찍으면 '+dstr(wrong)+'처럼 잘못됩니다. → '+exprOf(r)+' = '+dstr(r.Q)};
+  }
+  if(m < 7){                                       /* 몫이 같은 식 고르기 (11.52÷7.2) */
+    var s = R(2)===0
+      ? makeDiv({dA:2, dB:1, qd:[1], qlo:[11], qhi:[99], Amax:99.99}, [1152,2,72,1,16,1])
+      : makeDiv({dA:2, dB:2, qd:[0], qlo:[2], qhi:[40], Amax:99.99}, [368,2,46,2,8,0]);
+    var A = s.A, B = s.B;
+    var cand = [
+      {e:dstr(scale(A,1))+' ÷ '+dstr(scale(B,1)), ok:true},
+      {e:dstr(scale(A,2))+' ÷ '+dstr(scale(B,2)), ok:true},
+      {e:dstr(scale(A,2))+' ÷ '+dstr(scale(B,1)), ok:false},
+      {e:dstr(A)+' ÷ '+dstr(scale(B,1)), ok:false},
+      {e:dstr(scale(A,1))+' ÷ '+dstr(scale(B,2)), ok:false}
+    ];
+    var wrongs = shuffle(cand.slice(2)).slice(0,2);
+    var opt = shuffle([cand[0],cand[1]].concat(wrongs));
+    var cor = []; opt.forEach(function(o,ix){ if(o.ok) cor.push(ix); });
+    return {view:'choice', head:'판단 · 몫이 같은 식', multi:true,
+      text:J(exprOf(s),'과')+' 몫이 같은 나눗셈을 모두 고르세요.',
+      options:opt.map(function(o){return o.e;}), correct:cor,
+      sol:'나누어지는 수와 나누는 수에 똑같이 10배, 100배를 하면 몫은 같습니다. 한쪽에만 곱하면 몫이 달라집니다. '
+          +exprOf(s)+' = '+dstr(s.Q)};
+  }
+  /* 남는 양을 잘못 구한 경우 (67.2 L, 4 L씩 → 16통, 0.8 L 로 잘못) */
+  var D=4, T={i:672,dp:1}, xq={i:168,dp:1};
+  for(var t5=0;t5<500;t5++){
+    D = 2+R(8);
+    var xi = nz(21, 299);                             /* 몫 2.1 ~ 29.9 (소수 한 자리) */
+    var TT = normDec(D*xi, 1);
+    if(TT.dp!==1) continue;
+    T = TT; xq = {i:xi, dp:1}; break;
+  }
+  var qn = Math.floor(xq.i/10), wrongRem = normDec(xq.i%10, 1);
+  var rem = subD(T, {i:D*qn, dp:0});
+  return {view:'fill', head:'판단 · 남는 양 바로잡기', small:true,
+    text:'페인트 '+dstr(T)+' L를 한 통에 '+D+' L씩 나누어 담으려고 합니다. '+J(pick(NAMES),'은')+' 몫을 '+dstr(xq)
+         +'까지 구한 뒤 「담을 수 있는 통 '+qn+'통, 남는 페인트 '+dstr(wrongRem)+' L」라고 답했습니다. 바르게 고쳐 보세요.',
+    parts:[{t:'담을 수 있는 통: '},{s:0},{t:' 통'},{br:1},{t:'남는 페인트: '},{s:1},{t:' L'}],
+    slots:[{ans:qn,dp:0,w:'w2'},{ans:rem.i,dp:rem.dp}],
+    sol:'통의 수는 자연수이므로 몫을 자연수까지만 구합니다. '+dstr(T)+' ÷ '+D+' → '+qn+'통이고, 남는 양은 '
+        +dstr(T)+' − '+D+' × '+qn+' = '+dstr(rem)+' (L) 입니다. 확인: '+D+' × '+qn+' + '+dstr(rem)+' = '+dstr(T)};
+}
+
+/* 어떤 수를 잘못 나눈 문제 */
+function genInv(){
+  for(var t=0;t<500;t++){
+    var C = divB(1);
+    var Qd = R(3)===0 ? 1 : 0;
+    var Q = Qd ? {i:nz(11,199),dp:1} : {i:2+R(60),dp:0};
+    var X = mulD(C,Q);
+    if(X.dp>2 || !leVal(X,99.99)) continue;
+    var cands = [];
+    for(var bi=2; bi<=99; bi++){
+      if(bi%10===0 || bi===C.i) continue;
+      var Bv = {i:bi,dp:1};
+      var ans = exactDiv(X, Bv, 1);
+      if(!ans) continue;
+      if(cmpD(ans,{i:1,dp:0})<=0 || !leVal(ans,60)) continue;
+      cands.push({B:Bv, ans:ans});
+    }
+    if(!cands.length) continue;
+    var ch = pick(cands);
+    return {view:'fill', head:'적용 · 어떤 수 구하기', small:true,
+      text:'어떤 수를 '+J(dstr(ch.B),'로')+' 나누어야 할 것을 잘못하여 '+J(dstr(C),'로')+' 나누었더니 '+J(dstr(Q),'이')+' 되었습니다. 바르게 계산하면 얼마인지 구해 보세요.',
+      parts:[{t:'어떤 수: '},{s:0},{br:1},{t:'바르게 계산한 값: '},{s:1}],
+      slots:[{ans:X.i,dp:X.dp},{ans:ch.ans.i,dp:ch.ans.dp}],
+      sol:'어떤 수를 □라 하면 □ ÷ '+dstr(C)+' = '+dstr(Q)+'이므로 □ = '+dstr(C)+' × '+dstr(Q)+' = '+dstr(X)
+          +'입니다. 바르게 계산하면 '+dstr(X)+' ÷ '+dstr(ch.B)+' = '+dstr(ch.ans)+'입니다.'};
+  }
+  return {view:'fill', head:'적용 · 어떤 수 구하기', small:true,
+    text:'어떤 수를 1.4 로 나누어야 할 것을 잘못하여 0.4 로 나누었더니 28 이 되었습니다. 바르게 계산하면 얼마인지 구해 보세요.',
+    parts:[{t:'어떤 수: '},{s:0},{br:1},{t:'바르게 계산한 값: '},{s:1}],
+    slots:[{ans:112,dp:1},{ans:8,dp:0}],
+    sol:'□ ÷ 0.4 = 28 → □ = 0.4 × 28 = 11.2,  11.2 ÷ 1.4 = 8'};
+}
+
+/* 문장제 */
+function genWord(){
+  var m = R(6);
+  if(m===0){                                       /* 쿠키 8.24 ÷ 2.06 */
+    var r = makeDiv({dA:2, dB:2, qd:[0], qlo:[2], qhi:[9], Amax:45,
+                     Bfn:function(){ return {i:nz(101,495),dp:2}; }}, [824,2,206,2,4,0]);
+    return {view:'fill', head:'적용 · 문장제', small:true,
+      text:'쿠키 한 개를 만드는 데 설탕 '+dstr(r.B)+' g이 필요합니다. 설탕 '+dstr(r.A)+' g으로 만들 수 있는 쿠키는 몇 개일까요?',
+      parts:[{t:'식: '+exprOf(r)+' = '},{s:0},{t:' (개)'}],
+      slots:[{ans:r.Q.i,dp:0,w:'w2'}],
+      sol:exprOf(r)+' = '+dstr(r.Q)+' (개)'};
+  }
+  if(m===1){                                       /* 몇 배 3.12 ÷ 1.3 */
+    var r1 = makeDiv({dA:2, dB:1, qd:[1], qlo:[11], qhi:[49], Amax:30,
+                      Bfn:function(){ return {i:nz(5,49),dp:1}; }}, [312,2,13,1,24,1]);
+    return {view:'fill', head:'적용 · 문장제', small:true,
+      text:'집에서 공원까지의 거리는 '+dstr(r1.A)+' km이고, 집에서 학교까지의 거리는 '+dstr(r1.B)
+           +' km입니다. 집에서 공원까지의 거리는 집에서 학교까지의 거리의 몇 배일까요?',
+      parts:[{t:'식: '+exprOf(r1)+' = '},{s:0},{t:' (배)'}],
+      slots:[{ans:r1.Q.i,dp:r1.Q.dp}],
+      sol:exprOf(r1)+' = '+dstr(r1.Q)+' (배)'};
+  }
+  if(m===2){                                       /* 직사각형 세로 17 ÷ 4.25 */
+    var r2 = natDiv();
+    if(!leVal(r2.Q,60)) r2 = {A:{i:17,dp:0},B:{i:425,dp:2},Q:{i:4,dp:0}};
+    return {view:'fill', head:'적용 · 문장제', small:true,
+      text:'넓이가 '+dstr(r2.A)+' cm²이고 가로가 '+dstr(r2.B)+' cm인 직사각형이 있습니다. 이 직사각형의 세로는 몇 cm일까요?',
+      parts:[{t:'세로: '},{s:0},{t:' cm'}],
+      slots:[{ans:r2.Q.i,dp:r2.Q.dp}],
+      sol:'(세로) = (넓이) ÷ (가로) = '+exprOf(r2)+' = '+dstr(r2.Q)+' (cm)'};
+  }
+  if(m===3){                                       /* 직육면체 높이 8.05 ÷ (2.5 × 1.4) */
+    var a, b, h, base, V;
+    for(var t=0;t<500;t++){
+      a = {i:nz(11,49),dp:1}; b = {i:nz(11,39),dp:1}; h = {i:nz(11,49),dp:1};
+      base = mulD(a,b); V = mulD(base,h);
+      if(V.dp<=2 && base.dp<=2) break;
+    }
+    if(V.dp>2){ a={i:25,dp:1}; b={i:14,dp:1}; h={i:23,dp:1}; base=mulD(a,b); V=mulD(base,h); }
+    return {view:'fill', head:'적용 · 문장제', small:true,
+      text:'부피가 '+dstr(V)+' cm³인 직육면체가 있습니다. 밑면의 가로가 '+dstr(a)+' cm, 세로가 '+dstr(b)
+           +' cm일 때, 높이는 몇 cm일까요?',
+      parts:[{t:'밑면의 넓이: '},{s:0},{t:' cm²'},{br:1},{t:'높이: '},{s:1},{t:' cm'}],
+      slots:[{ans:base.i,dp:base.dp},{ans:h.i,dp:h.dp}],
+      sol:'밑면의 넓이 = '+dstr(a)+' × '+dstr(b)+' = '+dstr(base)+' (cm²),  높이 = '+dstr(V)+' ÷ '+dstr(base)
+          +' = '+dstr(h)+' (cm)'};
+  }
+  if(m===4){                                       /* 가로수 9.72 ÷ 0.54 + 1 */
+    var g = R(2)===0 ? {i:nz(21,95),dp:2} : {i:nz(12,49),dp:1};
+    var n = 0, Lr = null;
+    for(var t2=0;t2<200;t2++){
+      n = 5+R(20); Lr = mulD(g,{i:n,dp:0});
+      if(Lr.dp === g.dp) break;
+    }
+    return {view:'fill', head:'적용 · 문장제', small:true,
+      text:'길이가 '+dstr(Lr)+' m인 길 한쪽에 처음부터 끝까지 '+dstr(g)+' m 간격으로 가로수를 심었습니다. 심은 가로수는 모두 몇 그루일까요? (가로수의 두께는 생각하지 않습니다.)',
+      parts:[{t:'간격의 수: '},{s:0},{t:' 군데'},{br:1},{t:'가로수: '},{s:1},{t:' 그루'}],
+      slots:[{ans:n,dp:0,w:'w2'},{ans:n+1,dp:0,w:'w2'}],
+      sol:'간격의 수 = '+dstr(Lr)+' ÷ '+dstr(g)+' = '+n+' (군데). 처음과 끝에 모두 심으므로 가로수는 '+n+' + 1 = '+(n+1)+' (그루)'};
+  }
+  var r5 = makeDiv({dA:1, dB:1, qd:[0], qlo:[3], qhi:[60], Amax:99.9}, [371,1,7,1,53,0]);
+  var it = pick(['리본','색 테이프','철사']);
+  return {view:'fill', head:'적용 · 문장제', small:true,
+    text:'길이가 '+dstr(r5.A)+' m인 '+J(it,'을')+' '+dstr(r5.B)+' m씩 잘라 선물 상자를 묶으려고 합니다. 상자를 몇 개까지 묶을 수 있을까요?',
+    parts:[{t:'식: '+exprOf(r5)+' = '},{s:0},{t:' (개)'}],
+    slots:[{ans:r5.Q.i,dp:0,w:'w2'}],
+    sol:exprOf(r5)+' = '+dstr(r5.Q)+' (개)'};
+}
+
+/* =========================================================
+   어림하기 — 계산하지 않고 몫의 크기를 어림한다
+   (익힘 39쪽 「곱셈과 나눗셈의 관계를 이용하여 어림해 보세요」를 넓힌 것)
+   ========================================================= */
+var EST_CAT = {
+  lt1:  {qd:[1,2], qlo:[1,1],    qhi:[8,80]},     /* 0.01 ~ 0.8 */
+  one:  {qd:[0,1], qlo:[2,12],   qhi:[8,89]},     /* 1.2 ~ 8.9 */
+  ten:  {qd:[0,1], qlo:[12,121], qhi:[89,889]},   /* 12 ~ 88.9 */
+  hund: {qd:[0],   qlo:[120],    qhi:[400]}       /* 120 ~ 400 */
+};
+var EST_FORMS = [[1,1],[2,2],[2,1],[1,2]];
+function estDiv(cat){
+  var c = EST_CAT[cat];
+  for(var t=0;t<60;t++){
+    var f = pick(EST_FORMS);
+    var r = makeDiv({dA:f[0], dB:f[1], qd:c.qd, qlo:c.qlo, qhi:c.qhi, Amax:99.99}, [0,0,0,0,0,0]);
+    if(r.A.i!==0) return r;
+  }
+  var fb = {lt1:[48,2,6,1,8,1], one:[736,2,32,1,23,1], ten:[126,1,7,2,180,0], hund:[42,1,15,2,280,0]}[cat];
+  return {A:{i:fb[0],dp:fb[1]}, B:{i:fb[2],dp:fb[3]}, Q:normDec(fb[4],fb[5])};
+}
+/* 10^p 를 곱한 소수 */
+function shiftNum(i, p){ return p>=0 ? {i:i*pow10(p), dp:0} : normDec(i, -p); }
+/* 몫을 첫 자리만 남기고 어림한 값: 18 → 20, 0.063 → 0.06 */
+function sig1(Q){
+  var digits = String(Q.i).length;
+  var e = digits - 1 - Q.dp;                        /* 10^e ≤ Q < 10^(e+1) */
+  var lead = Math.round(Q.i / pow10(digits-1));
+  if(lead===10){ lead = 1; e++; }
+  return {lead:lead, e:e, v:shiftNum(lead, e)};
+}
+function estSolCheck(r, S){
+  return '(나누는 수) × (어림한 몫)이 나누어지는 수와 가까운지 확인합니다: '
+         +dstr(r.B)+' × '+dstr(S)+' = '+dstr(mulD(r.B,S))+'이고, 나누어지는 수는 '+dstr(r.A)+'입니다.';
+}
+/* 몫이 대략 얼마쯤인지 고르기 (12.6 ÷ 0.7 → 약 20) */
+function genEstMag(){
+  var r = estDiv(pick(['lt1','one','ten','ten','hund']));
+  var s = sig1(r.Q);
+  var start = s.e - R(4);                            /* 정답이 보기 네 개 중 아무 자리에나 오도록 */
+  if(start < -3) start = -3;
+  var opts = [], correct = 0;
+  for(var k=0;k<4;k++){
+    var p = start + k;
+    opts.push('약 '+dstr(shiftNum(s.lead, p)));
+    if(p===s.e) correct = k;
+  }
+  return {view:'choice', head:'어림하기 · 몫이 대략 얼마쯤일까', multi:false, inline:true,
+    text:'계산하지 말고 어림하여, 몫에 가장 가까운 수를 고르세요.',
+    parts:[{t:exprOf(r)+'  ≈  ?'}],
+    options:opts, correct:[correct],
+    sol:estSolCheck(r, s.v)+'  →  몫은 약 '+dstr(s.v)+'입니다. (실제 몫: '+dstr(r.Q)+')'};
+}
+/* 몫이 어느 범위인지 고르기 */
+var RANGE_LAB = ['1보다 작다','1과 10 사이','10과 100 사이','100보다 크다'];
+function genEstRange(){
+  var cats = ['lt1','one','ten','hund'];
+  var ci = R(4), r = estDiv(cats[ci]);
+  var tip = ci===0 ? '나누어지는 수가 나누는 수보다 작으므로 몫은 1보다 작습니다.'
+          : ci===1 ? '나누는 수 × 1 = '+dstr(r.B)+',  나누는 수 × 10 = '+dstr(mulD(r.B,{i:10,dp:0}))+' 사이에 나누어지는 수가 있습니다.'
+          : ci===2 ? '나누는 수 × 10 = '+dstr(mulD(r.B,{i:10,dp:0}))+',  나누는 수 × 100 = '+dstr(mulD(r.B,{i:100,dp:0}))+' 사이에 나누어지는 수가 있습니다.'
+          :          '나누는 수 × 100 = '+dstr(mulD(r.B,{i:100,dp:0}))+'보다 나누어지는 수가 큽니다.';
+  return {view:'choice', head:'어림하기 · 몫의 범위', multi:false,
+    text:'계산하지 말고 어림하여, '+exprOf(r)+'의 몫이 어느 범위에 있는지 고르세요.',
+    options:RANGE_LAB.slice(), correct:[ci],
+    sol:tip+'  (실제 몫: '+dstr(r.Q)+')'};
+}
+/* 몫의 숫자만 보고 소수점 찍기 (7.36 ÷ 3.2 → 23 → 2.3) */
+function genEstPoint(){
+  var r;
+  for(var t=0;t<50;t++){
+    r = estDiv(pick(['lt1','one','one','ten','hund']));
+    if(String(r.Q.i).length >= 2) break;
+  }
+  var raw = r.Q.i, rawDigits = String(raw).split('').join(' ');
+  var corrP = -r.Q.dp;                              /* 정답 = raw × 10^corrP */
+  var start = corrP - R(4), opts = [], correct = 0;
+  if(start < -4) start = -4;
+  for(var k=0;k<4;k++){
+    var p = start + k;
+    opts.push(dstr(shiftNum(raw, p)));
+    if(p===corrP) correct = k;
+  }
+  var s = sig1(r.Q);
+  return {view:'choice', head:'어림하기 · 몫의 소수점 찍기', multi:false, inline:true,
+    text:exprOf(r)+'의 몫의 숫자를 차례대로 쓰면 「'+rawDigits+'」입니다. 어림하여 소수점을 알맞게 찍은 몫을 고르세요.',
+    options:opts, correct:[correct],
+    sol:'몫은 약 '+dstr(s.v)+'입니다. '+estSolCheck(r, s.v)+'  →  '+exprOf(r)+' = '+dstr(r.Q)};
+}
+
+/* --- 전체 유형표 --- */
+var TYPES = [
+  {id:'warm',   step:'0단계', title:'(소수)÷(자연수) 떠올리기', desc:'6-1에서 배운 9.2÷2, 세로셈',            gen:genWarm},
+  {id:'sub',    step:'1단계', title:'그림·뺄셈으로 이해',    desc:'2.5÷0.5 — 몇 번 빼면 0이 될까',       gen:genSub},
+  {id:'unit',   step:'1단계', title:'단위 바꾸어 계산',      desc:'37.1 cm ÷ 0.7 cm = 371 mm ÷ 7 mm',  gen:genUnit},
+  {id:'frac',   step:'1단계', title:'분수의 나눗셈 이용',     desc:'6.12÷0.06 = 612/100 ÷ 6/100',       gen:genFrac},
+  {id:'nat',    step:'1단계', title:'자연수의 나눗셈 이용',   desc:'12.9÷0.3 → 129÷3 (10배·10배)',       gen:genNat},
+  {id:'estMag',  step:'2단계', title:'몫이 대략 얼마쯤?',    desc:'12.6÷0.7 ≈ 약 20 — 계산하지 않고',   gen:genEstMag},
+  {id:'estRange',step:'2단계', title:'몫의 범위 어림',       desc:'1보다 작다 / 1~10 / 10~100 / 100 초과', gen:genEstRange},
+  {id:'estPoint',step:'2단계', title:'어림하여 소수점 찍기',  desc:'7.36÷3.2 의 몫 「2 3」 → 2.3',       gen:genEstPoint},
+  {id:'lsame',  step:'3단계', title:'세로셈 · 자릿수 같음',   desc:'2.8÷0.7, 4.18÷0.38',                gen:genLSame},
+  {id:'ldiff',  step:'3단계', title:'세로셈 · 자릿수 다름',   desc:'2.34÷1.8 두 가지 방법, 4.5÷0.15',     gen:genLDiff},
+  {id:'lsmall', step:'3단계', title:'세로셈 · 몫이 1보다 작음', desc:'0.57÷9.5 = 0.06',                  gen:genLSmall},
+  {id:'lnat',   step:'4단계', title:'(자연수)÷(소수)',       desc:'13÷2.6, 13÷0.25 — 0 붙여 옮기기',    gen:genLNat},
+  {id:'roundL', step:'5단계', title:'셋째 자리까지 구하고 반올림', desc:'8.5÷6 = 1.416… → 1, 1.4, 1.42',  gen:genRoundL},
+  {id:'round',  step:'5단계', title:'자리 정해 반올림',      desc:'몫을 일·첫째·둘째 자리까지',          gen:genRound},
+  {id:'roundW', step:'5단계', title:'몇 배인지 반올림',       desc:'58÷2.7 — 소수 둘째 자리까지',         gen:genRoundW},
+  {id:'remain', step:'6단계', title:'몫과 남는 양',          desc:'17.2÷2 → 8명, 1.2 kg · 확인식',      gen:genRemain},
+  {id:'remsub', step:'6단계', title:'뺄셈으로 · 하나 더',     desc:'23.5−5−5−5−5, 한 봉지 더 만들기',     gen:genRemSub},
+  {id:'cmp',    step:'7단계', title:'몫의 크기 판단',        desc:'>, =, < · 가장 작은 몫 · 10보다 큰 몫', gen:genCmp},
+  {id:'err',    step:'7단계', title:'잘못된 계산 바로잡기',   desc:'몫의 소수점 위치, 남는 양 실수',        gen:genErr},
+  {id:'inv',    step:'7단계', title:'어떤 수 구하기',        desc:'잘못 나눈 수에서 바르게 계산',          gen:genInv},
+  {id:'word',   step:'7단계', title:'문장제',              desc:'쿠키, 몇 배, 세로, 높이, 가로수',       gen:genWord}
+];
+var TYPE_BY_ID = {};
+for(var ti=0;ti<TYPES.length;ti++) TYPE_BY_ID[TYPES[ti].id] = TYPES[ti];
+
+function genById(id, full){
+  if(id==='mix'){
+    var pool = TYPES.filter(function(t){ return t.id!=='warm'; });
+    var t = pick(pool);
+    var p = t.gen(full);
+    p._src = t.id;
+    return p;
+  }
+  var pr = TYPE_BY_ID[id].gen(full);
+  pr._src = id;
+  return pr;
+}
+
+return {
+  R:R, pick:pick, gcd:gcd, pow10:pow10, shuffle:shuffle,
+  normDec:normDec, decStr:decStr, dstr:dstr, parseDec:parseDec, sameNum:sameNum,
+  scale:scale, mulD:mulD, cmpD:cmpD, subD:subD, ratio:ratio, exactDiv:exactDiv, roundQ:roundQ,
+  buildLong:buildLong, buildRows:buildRows, quotientCells:quotientCells,
+  genById:genById, TYPES:TYPES, TYPE_BY_ID:TYPE_BY_ID
+};
+})();
+if(typeof module!=='undefined' && module.exports) module.exports = L;
+</script>
+
+<script id="ui">
+(function(){
+"use strict";
+var app = document.getElementById('app');
+var GOAL = 10;                       /* 연속 정답 10개 = 숙달 */
+var STORE = 'sosu-div-62-3-v1';      /* 6-1·6-2 복습용 파일과 기록이 섞이지 않게 따로 둔다 */
+var state = {
+  view:'menu', typeId:null, full:false,
+  q:null, judged:false, correct:false,
+  slots:[], sel:[], wrongQueue:[],
+  stat:{try:0, ok:0, streak:0}
+};
+var prog = {};
+
+/* ---------- 저장 ---------- */
+function load(){
+  try{
+    var s = localStorage.getItem(STORE);
+    if(s) prog = JSON.parse(s) || {};
+  }catch(e){ prog = {}; }
+  if(!prog || typeof prog!=='object') prog = {};
+}
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(prog)); }catch(e){}
+}
+function P(id){
+  if(!prog[id]) prog[id] = {best:0, streak:0, try:0, ok:0};
+  return prog[id];
+}
+load();
+
+/* ---------- 도구 ---------- */
+function el(tag, cls, txt){
+  var e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(txt!=null) e.textContent = txt;
+  return e;
+}
+function clear(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+
+/* ---------- 메뉴 ---------- */
+var STEPS = [
+  ['0단계','6-1 복습','익힘 35쪽 「알고 있나요」'],
+  ['1단계','(소수)÷(소수)의 원리','익힘 36~39쪽'],
+  ['2단계','어림하기 — 계산하지 않고 몫의 크기 짐작하기','익힘 39쪽을 넓힘'],
+  ['3단계','(소수)÷(소수) 세로셈','익힘 40~43쪽'],
+  ['4단계','(자연수)÷(소수)','익힘 44~45쪽'],
+  ['5단계','몫을 반올림하여 나타내기','익힘 46~47쪽'],
+  ['6단계','나누어 주고 남는 양','익힘 48~49쪽'],
+  ['7단계','판단하고 적용하기','익힘 「스스로 확인」']
+];
+function renderMenu(){
+  document.body.classList.remove('quizmode');
+  clear(app);
+  STEPS.forEach(function(sp){
+    var h = el('div','sec-title'+(sp[0]==='2단계'?' hot':''), sp[0]+' · '+sp[1]+'  ');
+    h.appendChild(el('span','src','('+sp[2]+')'));
+    app.appendChild(h);
+    var g = el('div','menu');
+    L.TYPES.filter(function(t){return t.step===sp[0];}).forEach(function(t){
+      g.appendChild(menuItem(t));
+    });
+    app.appendChild(g);
+  });
+  app.appendChild(el('div','sec-title','실전'));
+  var g2 = el('div','menu');
+  var mix = el('button','mi big');
+  mix.type='button';
+  mix.appendChild(el('span','n','종합'));
+  mix.appendChild(el('span','t','무작위 종합 연습'));
+  mix.appendChild(el('span','d','1~7단계의 '+(L.TYPES.length-1)+'가지 유형을 섞어서 끝없이 출제합니다.'));
+  var pm = P('mix');
+  var bar = el('div','bar'); var fi = el('i'); fi.style.width = Math.min(100, pm.streak/GOAL*100)+'%';
+  bar.appendChild(fi); mix.appendChild(bar);
+  var st = el('div','st');
+  st.appendChild(el('span', null, '연속 '+pm.streak+' / '+GOAL));
+  st.appendChild(el('span', null, '푼 문제 '+pm.try+'개'));
+  mix.appendChild(st);
+  if(pm.best>=GOAL) mix.classList.add('done');
+  mix.onclick = function(){ startType('mix'); };
+  g2.appendChild(mix);
+  app.appendChild(g2);
+}
+function menuItem(t){
+  var p = P(t.id);
+  var b = el('button','mi'+(t.step==='2단계'?' est':''));
+  b.type = 'button';
+  b.appendChild(el('span','n', t.step));
+  b.appendChild(el('span','t', t.title));
+  b.appendChild(el('span','d', t.desc));
+  var bar = el('div','bar');
+  var i = el('i');
+  i.style.width = Math.min(100, p.streak/GOAL*100)+'%';
+  bar.appendChild(i);
+  b.appendChild(bar);
+  var st = el('div','st');
+  st.appendChild(el('span', null, '연속 '+p.streak+' / '+GOAL));
+  st.appendChild(el('b', null, p.best>=GOAL ? '숙달 완료 ★' : ('정답 '+p.ok+'/'+p.try)));
+  b.appendChild(st);
+  if(p.best>=GOAL) b.classList.add('done');
+  b.onclick = function(){ startType(t.id); };
+  return b;
+}
+
+/* ---------- 문제 시작 ---------- */
+function startType(id){
+  state.typeId = id;
+  state.view = 'quiz';
+  state.stat = {try:0, ok:0, streak:0};
+  state.wrongQueue = [];
+  nextQuestion();
+  window.scrollTo(0,0);
+}
+var LONG_CAPABLE = {warm:1,lsame:1,ldiff:1,lsmall:1,lnat:1,roundL:1,mix:1};
+function isLong(id){ return !!LONG_CAPABLE[id]; }
+
+function nextQuestion(){
+  state.judged = false; state.correct = false; state.sel = [];
+  var reuse = null;
+  if(state.wrongQueue.length && state.wrongQueue[0].wait<=0) reuse = state.wrongQueue.shift().q;
+  state.wrongQueue.forEach(function(w){ w.wait--; });
+  state.q = reuse ? reuse : L.genById(state.typeId, state.full);
+  renderQuiz();
+  focusFirst();
+}
+
+/* ---------- 문제 화면 ---------- */
+function renderQuiz(){
+  document.body.classList.add('quizmode');
+  clear(app);
+  var q = state.q;
+  var top = el('div','bar-top');
+  var back = el('button','chip','← 유형 선택');
+  back.type='button';
+  back.onclick = function(){ state.view='menu'; renderMenu(); window.scrollTo(0,0); };
+  top.appendChild(back);
+
+  if(isLong(state.typeId)){
+    var lab = el('label','toggle');
+    var cb = el('input'); cb.type='checkbox'; cb.checked = state.full;
+    cb.onchange = function(){ state.full = cb.checked; if(!state.judged) nextQuestion(); };
+    lab.appendChild(cb);
+    lab.appendChild(el('span',null,'세로셈 계산 과정까지 쓰기'));
+    top.appendChild(lab);
+  }
+  var p = P(state.typeId);
+  var stat = el('div','stat');
+  var s1 = el('span'); s1.innerHTML = '이번 회차 <b>'+state.stat.ok+' / '+state.stat.try+'</b>';
+  var s2 = el('span','streak'); s2.innerHTML = '연속 <b>'+p.streak+'</b> / '+GOAL;
+  var s3 = el('span'); s3.innerHTML = p.best>=GOAL ? '<b>숙달 완료 ★</b>' : ('최고 연속 <b>'+p.best+'</b>');
+  stat.appendChild(s1); stat.appendChild(s2); stat.appendChild(s3);
+  top.appendChild(stat);
+  app.appendChild(top);
+
+  var card = el('div','card qcard');
+  card.appendChild(el('div','qhead', q.head + (state.typeId==='mix' ? ' · 종합' : '')));
+  card.appendChild(el('div','qtext', q.text));
+
+  state.slots = []; curIdx = -1;
+  if(q.view==='fill') card.appendChild(renderFill(q.parts, q.slots, q.small ? 'small' : ''));
+  if(q.view==='long'){
+    if(q.pre)  card.appendChild(renderFill(q.pre,  q.slots, 'small pre'));
+    card.appendChild(renderLong(q));
+    if(q.post) card.appendChild(renderFill(q.post, q.slots, 'small post'));
+  }
+  if(q.view==='choice'){
+    if(q.parts) card.appendChild(renderFill(q.parts, [], 'show'));
+    card.appendChild(renderChoice(q));
+  }
+
+  var act = el('div','actions');
+  var b1 = el('button','btn','채점하기');
+  b1.type='button'; b1.id='btnCheck';
+  b1.onclick = judge;
+  var b2 = el('button','btn ghost','건너뛰기');
+  b2.type='button'; b2.id='btnNext';
+  b2.onclick = nextQuestion;
+  act.appendChild(b1); act.appendChild(b2);
+  card.appendChild(act);
+
+  var fb = el('div','fb'); fb.id='fb';
+  card.appendChild(fb);
+  card.appendChild(el('div','hint', q.view==='choice'
+    ? '보기를 눌러 고른 뒤 채점하세요.'
+    : '오른쪽 숫자판으로 입력합니다. 다른 칸에 쓰려면 그 칸을 누르세요.'));
+  app.appendChild(card);
+  app.appendChild(renderKeypad(q));
+}
+
+/* ---------- 오른쪽 숫자판 ----------
+   답 칸은 <input> 이 아니라 <span> 이다. 값은 state.slots[i].val 에 두고 화면에 그린다.
+   입력 요소가 없으므로 어떤 브라우저·기기에서도 기기 키보드가 뜨지 않는다. */
+var curIdx = -1;
+function slotIndex(node){
+  for(var i=0;i<state.slots.length;i++) if(state.slots[i].el===node) return i;
+  return -1;
+}
+function paint(s){ s.el.textContent = s.val; }
+function setCur(idx){
+  curIdx = idx;
+  state.slots.forEach(function(s, i){ s.el.classList.toggle('cur', i===idx && !s.dis); });
+}
+function goSlot(idx){
+  if(idx<0 || idx>=state.slots.length) return;
+  setCur(idx);
+  var r = state.slots[idx].el.getBoundingClientRect();
+  if(r.top < 0 || r.bottom > window.innerHeight){
+    state.slots[idx].el.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+}
+function kpTarget(){
+  if(state.judged) return null;
+  if(curIdx<0 && state.slots.length) setCur(0);
+  var s = state.slots[curIdx];
+  return (s && !s.dis) ? s : null;
+}
+function kpType(ch){
+  var s = kpTarget(); if(!s) return;
+  if(s.one){
+    if(ch==='.') return;                       /* 세로셈 한 자리 칸에는 숫자만 */
+    s.val = ch; paint(s);
+    goSlot(curIdx+1);
+    return;
+  }
+  if(ch==='.' && s.val.indexOf('.')>=0) return;
+  if(s.val.length>=8) return;
+  s.val += ch; paint(s);
+}
+function kpBack(){
+  var s = kpTarget(); if(!s) return;
+  if(s.val===''){ if(s.one) goSlot(curIdx-1); return; }
+  s.val = s.val.slice(0,-1); paint(s);
+}
+function kpClear(){ var s = kpTarget(); if(s){ s.val = ''; paint(s); } }
+function renderKeypad(q){
+  var kp = el('div','card kp'+(q.view==='choice'?' off':''));
+  kp.appendChild(el('div','kpt', q.view==='choice' ? '보기를 눌러 고르세요' : '숫자판'));
+  function key(label, cls, fn){
+    var b = el('button', cls||null, label);
+    b.type = 'button';
+    b.addEventListener('mousedown', function(e){ e.preventDefault(); });
+    b.addEventListener('click', fn);
+    return b;
+  }
+  var g = el('div','kpg');
+  ['7','8','9','4','5','6','1','2','3','0','.'].forEach(function(d){
+    g.appendChild(key(d, null, function(){ kpType(d); }));
+  });
+  g.appendChild(key('⌫', null, kpBack));
+  kp.appendChild(g);
+  var nav = el('div','kpnav');
+  nav.appendChild(key('◀ 앞 칸', null, function(){ goSlot(curIdx-1); }));
+  nav.appendChild(key('다음 칸 ▶', null, function(){ goSlot(curIdx+1); }));
+  kp.appendChild(nav);
+  kp.appendChild(key('이 칸 지우기', 'kpclr', kpClear));
+  var ok = key('채점하기', 'kpok', judge);
+  ok.id = 'kpOk';
+  kp.appendChild(ok);
+  return kp;
+}
+function mkSlot(def, one){
+  var sp = document.createElement('span');
+  sp.className = 'slot' + (def.w? ' '+def.w : '') + (one? ' w1' : '');
+  sp.setAttribute('aria-label','답 칸');
+  var s = {el:sp, ans:def.ans, dp:def.dp==null?0:def.dp, val:'', one:!!one, dis:false};
+  state.slots.push(s);
+  sp.addEventListener('click', function(){
+    if(state.judged || s.dis) return;
+    var i = slotIndex(sp);
+    if(i>=0) setCur(i);
+  });
+  return sp;
+}
+function fracNode(n, d){
+  var f = el('span','frac');
+  f.appendChild(el('span',null,String(n)));
+  f.appendChild(el('span','fl'));
+  f.appendChild(el('span',null,String(d)));
+  return f;
+}
+
+/* 수직선 그림: 0 부터 A 까지를 B 씩 색을 바꾸어 칠한다 */
+var SVGNS = 'http://www.w3.org/2000/svg';
+function sv(tag, attrs){
+  var e = document.createElementNS(SVGNS, tag);
+  for(var k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function numberLine(nl){
+  var A = nl.A, B = nl.B, q = nl.q;
+  var aVal = A.i/L.pow10(A.dp), bVal = B.i/L.pow10(B.dp);
+  var top = Math.ceil(aVal - 1e-9); if(top < 1) top = 1;
+  var W = 600, H = 92, x0 = 20, x1 = W-20, y = 44;
+  function X(v){ return x0 + (x1-x0)*v/top; }
+  var s = sv('svg', {viewBox:'0 0 '+W+' '+H, role:'img', 'aria-label':'수직선 그림'});
+  s.appendChild(sv('line', {x1:x0, y1:y, x2:x1, y2:y, style:'stroke:var(--sub);stroke-width:2'}));
+  for(var k=0;k<q;k++){
+    var r = sv('rect', {x:X(k*bVal), y:y-15, width:Math.max(1, X((k+1)*bVal)-X(k*bVal)), height:30, rx:3,
+      style:'fill:'+(k%2===0?'var(--brand-soft)':'var(--accent-soft)')+';stroke:'+(k%2===0?'var(--brand)':'var(--accent)')+';stroke-width:1.5'});
+    s.appendChild(r);
+  }
+  for(var t=0;t<=top;t++){
+    s.appendChild(sv('line', {x1:X(t), y1:y-20, x2:X(t), y2:y+20, style:'stroke:var(--ink);stroke-width:2'}));
+    var lb = sv('text', {x:X(t), y:y+40, 'text-anchor':'middle', style:'fill:var(--ink);font-size:17px;font-weight:700'});
+    lb.textContent = String(t);
+    s.appendChild(lb);
+  }
+  if(Math.abs(aVal - Math.round(aVal)) > 1e-9){
+    var la = sv('text', {x:X(aVal), y:y-24, 'text-anchor':'middle', style:'fill:var(--brand);font-size:16px;font-weight:800'});
+    la.textContent = L.dstr(A);
+    s.appendChild(la);
+    s.appendChild(sv('line', {x1:X(aVal), y1:y-20, x2:X(aVal), y2:y+20, style:'stroke:var(--brand);stroke-width:2.5'}));
+  }
+  var box = el('span','nl');
+  box.appendChild(s);
+  return box;
+}
+
+function renderFill(parts, slots, cls){
+  var box = el('div','qbody'+(cls?' '+cls:''));
+  parts.forEach(function(p){
+    if(p.t!=null){ box.appendChild(el('span',null,p.t)); return; }
+    if(p.br){ var br=el('span'); br.style.flexBasis='100%'; br.style.height='0'; box.appendChild(br); return; }
+    if(p.s!=null){ box.appendChild(mkSlot(slots[p.s])); return; }
+    if(p.nl){ box.appendChild(numberLine(p.nl)); return; }
+    if(p.frac){ box.appendChild(fracNode(p.frac[0], p.frac[1])); return; }
+    if(p.fracSlot){
+      var f = el('span','frac');
+      f.appendChild(mkSlot(slots[p.fracSlot[0]]));
+      f.appendChild(el('span','fl'));
+      if(typeof p.fracSlot[1] === 'number') f.appendChild(mkSlot(slots[p.fracSlot[1]]));
+      else f.appendChild(el('span',null,String(p.fracSlot[1])));
+      box.appendChild(f); return;
+    }
+  });
+  return box;
+}
+
+/* ---------- 세로셈 ---------- */
+function renderLong(q, readonly){
+  var Ld = q.Ld;
+  var showSteps = readonly ? true : q.full;
+  function cellFor(digit){
+    if(readonly){ return el('span','ansd', String(digit)); }
+    return mkSlot({ans:digit, dp:0}, true);
+  }
+  var rowsInfo = L.buildRows(Ld);
+  var qc = L.quotientCells(Ld);
+  var n = Ld.digits.length;
+
+  var cols = [];
+  for(var i=0;i<n;i++){
+    if(i===Ld.intLen) cols.push({kind:'dot'});
+    cols.push({kind:'dg', idx:i});
+  }
+  var colIndexOfDigit = {};
+  cols.forEach(function(c,ix){ if(c.kind==='dg') colIndexOfDigit[c.idx] = ix; });
+
+  var wrap = el('div','ldwrap');
+  var grid = el('div','ld'+(readonly?' ro':''));
+  grid.style.gridTemplateColumns = 'auto auto repeat('+cols.length+', auto)';
+
+  function put(r, c, cls, node){
+    var d = el('div','c '+cls);
+    d.style.gridRow = String(r);
+    d.style.gridColumn = String(c);
+    if(node) d.appendChild(node);
+    grid.appendChild(d);
+    return d;
+  }
+
+  var row = 1;
+  /* 1행: 몫 */
+  put(row, 1, 'dv');
+  put(row, 2, 'br');
+  cols.forEach(function(c, ix){
+    if(c.kind==='dot'){
+      put(row, ix+3, 'dot', Ld.qDp>0 ? el('span','qd','.') : null);
+      return;
+    }
+    var info = qc[c.idx];
+    if(!info.show){ put(row, ix+3, 'dg'); return; }
+    var qn = cellFor(info.digit);
+    if(readonly) qn.classList.add('qd');
+    put(row, ix+3, 'dg', qn);
+  });
+  row++;
+
+  /* 2행: 제수 ) 피제수 */
+  put(row, 1, 'dv', el('span',null,String(Ld.divisor)));
+  put(row, 2, 'br top', el('span',null,')'));
+  cols.forEach(function(c, ix){
+    if(c.kind==='dot'){ put(row, ix+3, 'dot top', el('span',null,'.')); return; }
+    var added = (c.idx >= Ld.origLen);          /* 내려 쓴 0 은 연하게 */
+    put(row, ix+3, 'dg top', el('span', added? 'pv':null, String(Ld.digits[c.idx])));
+  });
+  row++;
+
+  /* 계산 과정 */
+  if(showSteps){
+    rowsInfo.rows.forEach(function(r){
+      put(row, 1, 'dv'); put(row, 2, 'br');
+      var endCol = colIndexOfDigit[r.col];
+      var txt = r.text;
+      var place = [];
+      var ci = endCol;
+      for(var k=txt.length-1;k>=0;k--){
+        while(ci>=0 && cols[ci].kind!=='dg') ci--;
+        if(ci<0) break;
+        place.unshift({col:ci, ch:txt.charAt(k)});
+        ci--;
+      }
+      var occupied = {}, minC = Infinity, maxC = -Infinity;
+      place.forEach(function(pp){
+        occupied[pp.col]=pp.ch;
+        if(pp.col<minC) minC=pp.col;
+        if(pp.col>maxC) maxC=pp.col;
+      });
+      cols.forEach(function(c, ix){
+        var inRange = (ix>=minC && ix<=maxC);
+        var cls = (c.kind==='dot'? 'dot':'dg') + (r.rule && inRange ? ' rule':'');
+        if(c.kind==='dot'){ put(row, ix+3, cls); return; }
+        if(occupied[ix]!=null) put(row, ix+3, cls, cellFor(Number(occupied[ix])));
+        else put(row, ix+3, cls);
+      });
+      row++;
+    });
+  }
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+/* ---------- 선택형 ---------- */
+function renderChoice(q){
+  var box = el('div','opts'+(q.inline?' inline':''));
+  q.options.forEach(function(o, i){
+    var b = el('button','opt');
+    b.type='button';
+    var mk = el('span','mk');
+    b.appendChild(mk);
+    b.appendChild(el('span',null,o));
+    b.onclick = function(){
+      if(state.judged) return;
+      if(q.multi){
+        var p = state.sel.indexOf(i);
+        if(p>=0) state.sel.splice(p,1); else state.sel.push(i);
+      }else{
+        state.sel = [i];
+      }
+      Array.prototype.forEach.call(box.children, function(c, ix){
+        c.classList.toggle('sel', state.sel.indexOf(ix)>=0);
+        c.querySelector('.mk').textContent = state.sel.indexOf(ix)>=0 ? '✓' : '';
+      });
+    };
+    box.appendChild(b);
+  });
+  return box;
+}
+
+/* ---------- 채점 ---------- */
+function judge(){
+  if(state.judged){ nextQuestion(); return; }
+  var q = state.q, ok = true;
+  if(q.view==='choice'){
+    var want = q.correct.slice().sort().join(',');
+    var got = state.sel.slice().sort().join(',');
+    ok = (want===got) && state.sel.length>0;
+    var box = app.querySelector('.opts');
+    Array.prototype.forEach.call(box.children, function(c, ix){
+      c.classList.remove('sel');
+      if(q.correct.indexOf(ix)>=0){ c.classList.add('ok'); c.querySelector('.mk').textContent='✓'; }
+      else if(state.sel.indexOf(ix)>=0){ c.classList.add('bad'); c.querySelector('.mk').textContent='✗'; }
+      c.disabled = true;
+    });
+  }else{
+    state.slots.forEach(function(s){
+      var good = L.sameNum(s.val, s.ans, s.dp);
+      s.el.classList.add(good? 'ok':'bad');
+      if(!good) ok = false;
+      s.dis = true;
+      s.el.classList.add('dis');
+    });
+  }
+  state.judged = true;
+  state.correct = ok;
+  state.stat.try++;
+  var p = P(state.typeId);
+  p.try++;
+  if(ok){
+    state.stat.ok++; p.ok++; p.streak++;
+    if(p.streak > p.best) p.best = p.streak;
+  }else{
+    p.streak = 0;
+    state.wrongQueue.push({q:q, wait:2});
+  }
+  save();
+
+  var fb = document.getElementById('fb');
+  fb.className = 'fb show ' + (ok? 'good':'err');
+  clear(fb);
+  fb.appendChild(el('div','ttl', ok? '정답입니다.' : '다시 확인해 보세요.'));
+  fb.appendChild(el('div','sol', q.sol));
+  if(!ok && q.view==='long'){
+    fb.appendChild(el('div','sol','바른 계산'));
+    fb.appendChild(renderLong(q, true));
+  }
+  if(!ok) fb.appendChild(el('div','sol','이 문제는 잠시 뒤에 한 번 더 나옵니다.'));
+  if(ok && p.streak===GOAL){
+    var done = el('div','sol');
+    done.innerHTML = '<span class="em">연속 '+GOAL+'문제 정답 — 이 유형을 숙달했습니다.</span>';
+    fb.appendChild(done);
+  }
+  setCur(-1);
+  var kpOk = document.getElementById('kpOk');
+  if(kpOk){
+    kpOk.textContent = '다음 문제 →';
+    kpOk.parentNode.classList.add('off');
+  }
+  var btn = document.getElementById('btnCheck');
+  btn.textContent = '다음 문제 →';
+  document.getElementById('btnNext').style.display = 'none';
+  var s1 = app.querySelector('.stat span:nth-child(1)');
+  if(s1) s1.innerHTML = '이번 회차 <b>'+state.stat.ok+' / '+state.stat.try+'</b>';
+  var s2 = app.querySelector('.stat .streak');
+  if(s2) s2.innerHTML = '연속 <b>'+p.streak+'</b> / '+GOAL;
+  var fr = fb.getBoundingClientRect();
+  if(fr.bottom > window.innerHeight) fb.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+
+function focusFirst(){
+  if(state.slots.length) setCur(0);
+}
+
+/* ---------- PC 키보드 ---------- */
+document.addEventListener('keydown', function(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(state.view==='quiz') judge();
+    return;
+  }
+  if(state.view!=='quiz' || state.judged) return;
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  var k = e.key;
+  if(/^[0-9]$/.test(k) || k==='.' || k==='Decimal'){ e.preventDefault(); kpType(k==='Decimal'?'.':k); return; }
+  if(k==='Backspace'){ e.preventDefault(); kpBack(); return; }
+  if(k==='Delete'){ e.preventDefault(); kpClear(); return; }
+  if(k==='ArrowRight' || (k==='Tab' && !e.shiftKey)){
+    if(!state.slots.length) return;
+    e.preventDefault(); goSlot(curIdx<0?0:curIdx+1); return;
+  }
+  if(k==='ArrowLeft' || (k==='Tab' && e.shiftKey)){
+    if(!state.slots.length) return;
+    e.preventDefault(); goSlot(curIdx-1); return;
+  }
+});
+
+/* ---------- 상단 버튼 ---------- */
+document.getElementById('btnTheme').onclick = function(){
+  var cur = document.documentElement.getAttribute('data-theme');
+  var dark = cur ? (cur==='dark') : !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  var next = dark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+};
+document.getElementById('btnReset').onclick = function(){
+  if(!confirm('연속 정답 기록과 숙달 표시를 모두 지울까요?')) return;
+  prog = {}; save();
+  state.view='menu'; renderMenu();
+};
+
+renderMenu();
+})();
+</script>
+</body>
+</html>
